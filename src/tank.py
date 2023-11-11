@@ -1,6 +1,5 @@
 import pygame
 import bullet
-import cv2
 import random
 
 tank_T1_0 = '../image/tank_T1_0.png'
