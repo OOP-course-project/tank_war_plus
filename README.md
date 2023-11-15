@@ -10,5 +10,18 @@ python main.py
 ```
 
 ## control
-Player 1: w:up s:down a:left d:right j:shoot
-Player 2: up:up down:down left:left right:right 0:shoot
+Player 1: 
+
+- w:up 
+- s:down 
+- a:left 
+- d:right 
+- j:shoot
+
+Player 2: 
+
+- up:up 
+- down:down 
+- left:left 
+- right:right 
+- 0:shoot
