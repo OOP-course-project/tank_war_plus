@@ -460,19 +460,21 @@ def main():
                     # if bullet hit player tank
                     if pygame.sprite.collide_rect(enemy_tank.bullet, player_tank1):
                         player_tank1.life -= 1
-                        player_tank1.rect.left, player_tank1.rect.top = (
-                            3 + 24 * 8,
-                            3 + 24 * 24,
-                        )
+                        if player_tank1.life == 0:
+                            player_tank1.rect.left, player_tank1.rect.top = (
+                                3 + 24 * 8,
+                                3 + 24 * 24,
+                            )
                         enemy_tank.bullet.life = False
                         bang_sound.play()
                         moving1 = 0
                     if pygame.sprite.collide_rect(enemy_tank.bullet, player_tank2):
                         player_tank2.life -= 1
-                        player_tank2.rect.left, player_tank2.rect.top = (
-                            3 + 24 * 16,
-                            3 + 24 * 24,
-                        )
+                        if player_tank2.life == 0:
+                            player_tank2.rect.left, player_tank2.rect.top = (
+                                3 + 24 * 16,
+                                3 + 24 * 24,
+                            )
                         enemy_tank.bullet.life = False
                         bang_sound.play()
                         moving2 = 0
