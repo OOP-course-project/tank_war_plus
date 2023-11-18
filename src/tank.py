@@ -101,6 +101,12 @@ class Player_tank(pygame.sprite.Sprite):
             return True
         return False
 
+    def update(self):
+        # if life is smaller than 0, kill the tank
+        if self.life <= 0:
+            self.kill()
+            del self
+
 
 class Enemy_tank(pygame.sprite.Sprite):
     def __init__(self, x=None, kind=None) -> None:

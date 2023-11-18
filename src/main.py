@@ -142,8 +142,11 @@ def main():
                         )
                         back_ground.iron_group.add(back_ground.iron)
 
+        # update the status of player tank
+        player_tank_group.update()
         # check player keyboard control
         key_pressed = pygame.key.get_pressed()
+        print(len(player_tank_group))
 
         # player 1 moving
         if moving1:
@@ -258,7 +261,6 @@ def main():
                     moving2 = 0
                 all_tank_group.add(player_tank2)
         if key_pressed[pygame.K_KP0]:
-            print(player_tank2.bullet_not_cooling)
             if not player_tank2.bullet.life and player_tank2.bullet_not_cooling:
                 fire_sound.play()
                 player_tank2.shoot()
@@ -280,25 +282,33 @@ def main():
 
         if not (delay % 5):
             switch_R1_R2_image = not switch_R1_R2_image
-        if switch_R1_R2_image and running_T1:
-            screen.blit(
-                player_tank1.tank_R1, (player_tank1.rect.left, player_tank1.rect.top)
-            )
-            running_T1 = False
-        else:
-            screen.blit(
-                player_tank1.tank_R0, (player_tank1.rect.left, player_tank1.rect.top)
-            )
 
-        if switch_R1_R2_image and running_T2:
-            screen.blit(
-                player_tank2.tank_R0, (player_tank2.rect.left, player_tank2.rect.top)
-            )
-            running_T2 = False
-        else:
-            screen.blit(
-                player_tank2.tank_R1, (player_tank2.rect.left, player_tank2.rect.top)
-            )
+        # draw player tank
+        if player_tank1.life > 0:
+            if switch_R1_R2_image and running_T1:
+                screen.blit(
+                    player_tank1.tank_R1,
+                    (player_tank1.rect.left, player_tank1.rect.top),
+                )
+                running_T1 = False
+            else:
+                screen.blit(
+                    player_tank1.tank_R0,
+                    (player_tank1.rect.left, player_tank1.rect.top),
+                )
+
+        if player_tank2.life > 0:
+            if switch_R1_R2_image and running_T2:
+                screen.blit(
+                    player_tank2.tank_R0,
+                    (player_tank2.rect.left, player_tank2.rect.top),
+                )
+                running_T2 = False
+            else:
+                screen.blit(
+                    player_tank2.tank_R1,
+                    (player_tank2.rect.left, player_tank2.rect.top),
+                )
 
         for enemy_tank in enemy_tank_group:
             if enemy_tank.flash:
@@ -458,23 +468,19 @@ def main():
                         enemy_tank.bullet.move()
                     screen.blit(enemy_tank.bullet.bullet, enemy_tank.bullet.rect)
                     # if bullet hit player tank
-                    if pygame.sprite.collide_rect(enemy_tank.bullet, player_tank1):
+                    if (
+                        pygame.sprite.collide_rect(enemy_tank.bullet, player_tank1)
+                        and player_tank1 in player_tank_group
+                    ):
                         player_tank1.life -= 1
-                        if player_tank1.life == 0:
-                            player_tank1.rect.left, player_tank1.rect.top = (
-                                3 + 24 * 8,
-                                3 + 24 * 24,
-                            )
                         enemy_tank.bullet.life = False
                         bang_sound.play()
                         moving1 = 0
-                    if pygame.sprite.collide_rect(enemy_tank.bullet, player_tank2):
+                    if (
+                        pygame.sprite.collide_rect(enemy_tank.bullet, player_tank2)
+                        and player_tank2 in player_tank_group
+                    ):
                         player_tank2.life -= 1
-                        if player_tank2.life == 0:
-                            player_tank2.rect.left, player_tank2.rect.top = (
-                                3 + 24 * 16,
-                                3 + 24 * 24,
-                            )
                         enemy_tank.bullet.life = False
                         bang_sound.play()
                         moving2 = 0
