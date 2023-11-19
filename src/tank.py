@@ -45,6 +45,24 @@ class Player_tank(pygame.sprite.Sprite):
             "right": (self.speed, 0),
         }
 
+        self.max_life = 3
+        self.health_bar_length = 48
+        self.health_bar_color = (255, 0, 0, 255)
+
+    def draw_health_bar(self, screen):
+        health_bar_width = int((self.life / self.max_life) * self.health_bar_length)
+        health_bar_surface = pygame.Surface((self.health_bar_length, 5))
+        pygame.draw.rect(
+            health_bar_surface, self.health_bar_color, (0, 0, health_bar_width, 5)
+        )
+
+        health_bar_position = (
+            self.rect.centerx - self.health_bar_length / 2,
+            self.rect.centery - 30,
+        )
+
+        screen.blit(health_bar_surface, health_bar_position)
+
     def shoot(self):
         self.bullet.life = True
         # 根据坦克的方向来确定子弹的方向
@@ -101,11 +119,12 @@ class Player_tank(pygame.sprite.Sprite):
             return True
         return False
 
-    def update(self):
+    def update(self, screen):
         # if life is smaller than 0, kill the tank
         if self.life <= 0:
             self.kill()
-            del self
+        self.draw_health_bar(screen)
+        pygame.display.update()
 
 
 class Enemy_tank(pygame.sprite.Sprite):
