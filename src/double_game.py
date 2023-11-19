@@ -288,6 +288,14 @@ def double_players(screen):
         if not (delay % 5):
             switch_R1_R2_image = not switch_R1_R2_image
 
+        font = pygame.font.Font(None, 36)
+        score_text1 = font.render(f"Score1: {score1}", True, (255, 255, 255))
+        score_text2 = font.render(f"Score2: {score2}", True, (255, 255, 255))
+        screen.blit(score_text1, (10, 10))
+        screen.blit(
+            score_text2, (screen.get_width() - score_text2.get_width() - 10, 10)
+        )
+
         # draw player tank
         if player_tank1.life > 0:
             if switch_R1_R2_image and running_T1:
@@ -386,6 +394,7 @@ def double_players(screen):
             if pygame.sprite.spritecollide(
                 player_tank1.bullet, enemy_tank_group, True, None
             ):
+                score1 += 1
                 bang_sound.play()
                 enemy_number -= 1
                 player_tank1.bullet.life = False
@@ -429,7 +438,7 @@ def double_players(screen):
             if pygame.sprite.spritecollide(
                 player_tank2.bullet, enemy_tank_group, True, None
             ):
-                player_tank2.bullet.life = False
+                score2 += 1
                 bang_sound.play()
                 enemy_number -= 1
                 player_tank2.bullet.life = False

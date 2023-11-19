@@ -15,7 +15,7 @@ def main():
     screen = pygame.display.set_mode(resolution)
     pygame.display.set_caption("Tank War")
 
-    game_mode_selection = "double"
+    game_mode_selection = "single"
 
     print("game_mode_selection:", game_mode_selection)
     if game_mode_selection == "double":

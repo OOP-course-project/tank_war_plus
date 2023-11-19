@@ -57,6 +57,7 @@ def single_player(screen):
 
     delay = 100
     moving1 = 0
+    score1 = 0
     move_direction1 = "up"
     enemy_number = 3
     enemy_could_move = True
@@ -221,6 +222,11 @@ def single_player(screen):
         if not (delay % 5):
             switch_R1_R2_image = not switch_R1_R2_image
 
+        # show the score
+        font = pygame.font.Font(None, 36)
+        score_text = font.render(f"Score1: {score1}", True, (255, 255, 255))
+        screen.blit(score_text, (10, 10))
+
         # draw player tank
         if player_tank1.life > 0:
             if switch_R1_R2_image and running_T1:
@@ -308,6 +314,7 @@ def single_player(screen):
             ):
                 bang_sound.play()
                 enemy_number -= 1
+                score1 += 1
                 player_tank1.bullet.life = False
 
             # bullet hit brick
