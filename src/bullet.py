@@ -56,3 +56,5 @@ class Normal_bullet(pygame.sprite.Sprite):
 class Fire_bullet(Normal_bullet):
     def __init__(self) -> None:
         super().__init__()
+        
+
