@@ -64,7 +64,9 @@ class Player_tank(pygame.sprite.Sprite):
         screen.blit(health_bar_surface, health_bar_position)
 
     def shoot(self):
-        new_bullet = bullet.Freeze_bullet()
+        new_bullet = random.choice(
+            [bullet.Normal_bullet(), bullet.Fire_bullet(), bullet.Freeze_bullet()]
+        )
         new_bullet.life = True
         # 根据坦克的方向来确定子弹的方向
         new_bullet.change_image(self.direction)
@@ -170,8 +172,9 @@ class Enemy_tank(pygame.sprite.Sprite):
         self.rect = self.tank_R0.get_rect()
         self.rect.left, self.rect.top = 3 + self.x * 12 * 24, 3 + 24 * 0
 
-        self.speed = 1
-        self.life = 1
+        self.speed = 3
+        self.original_speed = 3
+        self.life = 2
         self.bullet_not_cooling = True
         self.bullet = bullet.Normal_bullet()
         self.dir_change = False
@@ -182,9 +185,15 @@ class Enemy_tank(pygame.sprite.Sprite):
             "left": (-self.speed, 0),
             "right": (self.speed, 0),
         }
+        self.slow_down = False
+        self.slow_down_timer = 0
+        self.in_fire = False
+        self.in_fire_timer = 0
+        self.in_fire_count = 0
 
         if self.kind == 2:
-            self.speed = 3
+            self.speed = 5
+            self.original_speed = 5
         if self.kind == 3:
             self.life = 3
 
@@ -246,6 +255,26 @@ class Enemy_tank(pygame.sprite.Sprite):
                 -self.direction_dic[self.direction][1],
             )
             self.direction = random.choice(["up", "down", "left", "right"])
+
+    def update(self):
+        if self.life <= 0:
+            self.kill()
+        pygame.display.update()
+
+        # judge if the tank is in freeze
+        if self.slow_down:
+            self.speed = 1
+        else:
+            self.speed = self.original_speed
+
+        # judge if the tank is in fire
+        if self.in_fire and self.in_fire_count:
+            if pygame.time.get_ticks() - self.in_fire_timer >= 500:
+                self.in_fire_count -= 1
+                self.life -= 0.25
+                self.in_fire_timer = pygame.time.get_ticks()
+                if self.in_fire_count == 0:
+                    self.in_fire = False
 
 
 if __name__ == "__main__":

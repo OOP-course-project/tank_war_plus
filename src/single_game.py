@@ -3,6 +3,7 @@ import sys
 import wall
 import tank
 import food
+import bullet
 
 
 def single_player(screen):
@@ -14,7 +15,7 @@ def single_player(screen):
     bang_sound = pygame.mixer.Sound(r"../music/bang.wav")
     fire_sound = pygame.mixer.Sound(r"../music/Gunfire.wav")
     start_sound = pygame.mixer.Sound(r"../music/start.wav")
-    enemy_appear = pygame.image.load("../image/appear.png").convert_alpha()
+    enemy_appear = pygame.image.load(r"../image/appear.png").convert_alpha()
     bang_sound.set_volume(1)
     start_sound.play()
 
@@ -36,7 +37,6 @@ def single_player(screen):
         enemy_tank_group.add(enemy)
 
     # enemy tank appearance image
-
     appearance = []
     appearance.append(enemy_appear.subsurface((0, 0), (48, 48)))
     appearance.append(enemy_appear.subsurface((48, 0), (48, 48)))
@@ -59,7 +59,6 @@ def single_player(screen):
     moving1 = 0
     score1 = 0
     move_direction1 = "up"
-    enemy_number = 3
     enemy_could_move = True
     switch_R1_R2_image = True
     home_survive = True
@@ -86,13 +85,12 @@ def single_player(screen):
                 enemy_could_move = True
 
             if event.type == DELAYEVENT:
-                if enemy_number < 4:
+                if len(enemy_tank_group) < 4:
                     enemy = tank.Enemy_tank()
                     if pygame.sprite.spritecollide(enemy, all_tank_group, False, None):
                         break
                     all_tank_group.add(enemy)
                     enemy_tank_group.add(enemy)
-                    enemy_number += 1
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_c and pygame.KMOD_CTRL:
@@ -136,12 +134,18 @@ def single_player(screen):
 
         # update the status of player tank
         player_tank_group.update(screen)
+        enemy_tank_group.update()
+        for enemy_tank in enemy_tank_group:
+            if enemy_tank.slow_down:
+                if current_time - enemy_tank.slow_down_timer >= 5000:
+                    enemy_tank.slow_down = False
         # check player keyboard control
         key_pressed = pygame.key.get_pressed()
 
         if len(player_tank_group) <= 0:
             pass
 
+        print([enemy_tank.life for enemy_tank in enemy_tank_group])
         # player 1 control
         if player_tank1.life > 0:
             if moving1:
@@ -310,11 +314,23 @@ def single_player(screen):
                             )
 
                 # bullet hit enemy tank
-                if pygame.sprite.spritecollide(p1_bullet, enemy_tank_group, True, None):
-                    bang_sound.play()
-                    enemy_number -= 1
-                    score1 += 1
-                    p1_bullet.life = False
+                for enemy_tank in enemy_tank_group:
+                    if pygame.sprite.collide_rect(p1_bullet, enemy_tank):
+                        if isinstance(p1_bullet, bullet.Freeze_bullet):
+                            enemy_tank.slow_down = True
+                            enemy_tank.slow_down_timer = current_time
+                            enemy_tank.update()
+                        if isinstance(p1_bullet, bullet.Fire_bullet):
+                            enemy_tank.in_fire = True
+                            enemy_tank.in_fire_count = 4
+                            enemy_tank.in_fire_timer = current_time
+                            enemy_tank.update()
+                        bang_sound.play()
+                        p1_bullet.life = False
+                        p1_bullet.kill()
+                        if enemy_tank.life == 1:
+                            score1 += 1
+                        enemy_tank.life -= 1
 
                 # bullet hit brick
                 if pygame.sprite.spritecollide(

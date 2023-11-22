@@ -58,6 +58,7 @@ class Fire_bullet(Normal_bullet):
         self.bullet_up = pygame.image.load(
             "../image/fire_bullet_up.png"
         ).convert_alpha()
+
         self.bullet_up = pygame.transform.scale(self.bullet_up, (12, 12))
         self.bullet_left = pygame.transform.rotate(self.bullet_up, 90)
         self.bullet_down = pygame.transform.rotate(self.bullet_up, 180)
