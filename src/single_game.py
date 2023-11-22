@@ -294,58 +294,57 @@ def single_player(screen):
 
         player_tank_group.update(screen)
         # draw player 1 bullet
-        if player_tank1.bullet.life:
-            player_tank1.bullet.move()
-            screen.blit(player_tank1.bullet.bullet, player_tank1.bullet.rect)
+        for p1_bullet in player_tank1.bullets_list:
+            if p1_bullet.life:
+                p1_bullet.move()
+                screen.blit(p1_bullet.bullet, p1_bullet.rect)
 
-            # bullet hit enemy bullet
-            for enemy_bullet in enemy_bullet_group:
-                if enemy_bullet.life:
-                    if pygame.sprite.collide_rect(player_tank1.bullet, enemy_bullet):
-                        player_tank1.bullet.life = False
-                        enemy_bullet.life = False
-                        pygame.sprite.spritecollide(
-                            player_tank1.bullet, enemy_bullet_group, True, None
-                        )
+                # bullet hit enemy bullet
+                for enemy_bullet in enemy_bullet_group:
+                    if enemy_bullet.life:
+                        if pygame.sprite.collide_rect(p1_bullet, enemy_bullet):
+                            p1_bullet.life = False
+                            enemy_bullet.life = False
+                            pygame.sprite.spritecollide(
+                                p1_bullet, enemy_bullet_group, True, None
+                            )
 
-            # bullet hit enemy tank
-            if pygame.sprite.spritecollide(
-                player_tank1.bullet, enemy_tank_group, True, None
-            ):
-                bang_sound.play()
-                enemy_number -= 1
-                score1 += 1
-                player_tank1.bullet.life = False
+                # bullet hit enemy tank
+                if pygame.sprite.spritecollide(p1_bullet, enemy_tank_group, True, None):
+                    bang_sound.play()
+                    enemy_number -= 1
+                    score1 += 1
+                    p1_bullet.life = False
 
-            # bullet hit brick
-            if pygame.sprite.spritecollide(
-                player_tank1.bullet, back_ground.brick_group, True, None
-            ):
-                player_tank1.bullet.life = False
-                player_tank1.bullet.rect.left, player_tank1.bullet.rect.top = (
-                    3 + 12 * 24,
-                    3 + 24 * 24,
-                )
+                # bullet hit brick
+                if pygame.sprite.spritecollide(
+                    p1_bullet, back_ground.brick_group, True, None
+                ):
+                    p1_bullet.life = False
+                    p1_bullet.rect.left, p1_bullet.rect.top = (
+                        3 + 12 * 24,
+                        3 + 24 * 24,
+                    )
 
-            # bullet hit iron
-            if pygame.sprite.spritecollide(
-                player_tank1.bullet, back_ground.iron_group, False, None
-            ):
-                player_tank1.bullet.life = False
-                player_tank1.bullet.rect.left, player_tank1.bullet.rect.top = (
-                    3 + 12 * 24,
-                    3 + 24 * 24,
-                )
+                # bullet hit iron
+                if pygame.sprite.spritecollide(
+                    p1_bullet, back_ground.iron_group, False, None
+                ):
+                    p1_bullet.life = False
+                    p1_bullet.rect.left, p1_bullet.rect.top = (
+                        3 + 12 * 24,
+                        3 + 24 * 24,
+                    )
 
-            # bullet hit iron
-            if pygame.sprite.spritecollide(
-                player_tank1.bullet, back_ground.iron_group, False, None
-            ):
-                player_tank1.bullet.life = False
-                player_tank1.bullet.rect.left, player_tank1.bullet.rect.top = (
-                    3 + 12 * 24,
-                    3 + 24 * 24,
-                )
+                # bullet hit iron
+                if pygame.sprite.spritecollide(
+                    p1_bullet, back_ground.iron_group, False, None
+                ):
+                    p1_bullet.life = False
+                    p1_bullet.rect.left, p1_bullet.rect.top = (
+                        3 + 12 * 24,
+                        3 + 24 * 24,
+                    )
 
         # draw enemy bullet
         for enemy_tank in enemy_tank_group:

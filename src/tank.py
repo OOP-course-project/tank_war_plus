@@ -36,7 +36,7 @@ class Player_tank(pygame.sprite.Sprite):
         self.speed = 3
         self.life = 3
         self.bullet_not_cooling = True
-        self.bullet = bullet.Fire_bullet()
+        self.bullets_list = []
         self.direction = "up"
         self.direction_dic = {
             "up": (0, -self.speed),
@@ -64,22 +64,25 @@ class Player_tank(pygame.sprite.Sprite):
         screen.blit(health_bar_surface, health_bar_position)
 
     def shoot(self):
-        self.bullet.life = True
+        new_bullet = bullet.Freeze_bullet()
+        new_bullet.life = True
         # 根据坦克的方向来确定子弹的方向
-        self.bullet.change_image(self.direction)
+        new_bullet.change_image(self.direction)
         # 根据坦克的方向来确定子弹的位置
         if self.direction == "up":
-            self.bullet.rect.left = self.rect.left + 20
-            self.bullet.rect.bottom = self.rect.top - 1
+            new_bullet.rect.left = self.rect.left + 20
+            new_bullet.rect.bottom = self.rect.top - 1
         elif self.direction == "down":
-            self.bullet.rect.left = self.rect.left + 20
-            self.bullet.rect.top = self.rect.bottom + 1
+            new_bullet.rect.left = self.rect.left + 20
+            new_bullet.rect.top = self.rect.bottom + 1
         elif self.direction == "left":
-            self.bullet.rect.right = self.rect.left - 1
-            self.bullet.rect.top = self.rect.top + 20
+            new_bullet.rect.right = self.rect.left - 1
+            new_bullet.rect.top = self.rect.top + 20
         elif self.direction == "right":
-            self.bullet.rect.left = self.rect.right + 1
-            self.bullet.rect.top = self.rect.top + 20
+            new_bullet.rect.left = self.rect.right + 1
+            new_bullet.rect.top = self.rect.top + 20
+
+        self.bullets_list.append(new_bullet)
 
     def move_func(self, tank_group, brick_group, iron_group):
         self.rect = self.rect.move(self.direction_dic[self.direction])
@@ -125,6 +128,9 @@ class Player_tank(pygame.sprite.Sprite):
             self.kill()
         self.draw_health_bar(screen)
         pygame.display.update()
+        for b in self.bullets_list:
+            if not b.life:
+                self.bullets_list.remove(b)
 
 
 class Enemy_tank(pygame.sprite.Sprite):
