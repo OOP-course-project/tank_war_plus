@@ -36,7 +36,7 @@ class Player_tank(pygame.sprite.Sprite):
         self.speed = 3
         self.life = 3
         self.bullet_not_cooling = True
-        self.bullet = bullet.Normal_bullet()
+        self.bullet = bullet.Fire_bullet()
         self.direction = "up"
         self.direction_dic = {
             "up": (0, -self.speed),
