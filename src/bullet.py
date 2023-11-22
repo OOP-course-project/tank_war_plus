@@ -5,14 +5,12 @@ class Normal_bullet(pygame.sprite.Sprite):
     def __init__(self) -> None:
         super().__init__()
 
-        self.bullet_up = pygame.image.load(
-            '../image/bullet_up.png').convert_alpha()
-        self.bullet_down = pygame.image.load(
-            '../image/bullet_down.png').convert_alpha()
-        self.bullet_left = pygame.image.load(
-            '../image/bullet_left.png').convert_alpha()
+        self.bullet_up = pygame.image.load("../image/bullet_up.png").convert_alpha()
+        self.bullet_down = pygame.image.load("../image/bullet_down.png").convert_alpha()
+        self.bullet_left = pygame.image.load("../image/bullet_left.png").convert_alpha()
         self.bullet_right = pygame.image.load(
-            '../image/bullet_right.png').convert_alpha()
+            "../image/bullet_right.png"
+        ).convert_alpha()
 
         self.direction = "up"
         self.speed = 6
@@ -40,7 +38,7 @@ class Normal_bullet(pygame.sprite.Sprite):
             "up": (0, -self.speed),
             "down": (0, self.speed),
             "left": (-self.speed, 0),
-            "right": (self.speed, 0)
+            "right": (self.speed, 0),
         }
         self.rect = self.rect.move(direction_dic[self.direction])
         if self.rect.top < 3:
@@ -56,3 +54,12 @@ class Normal_bullet(pygame.sprite.Sprite):
 class Fire_bullet(Normal_bullet):
     def __init__(self) -> None:
         super().__init__()
+
+        self.bullet_up = pygame.image.load(
+            "../image/fire_bullet_up.png"
+        ).convert_alpha()
+        self.bullet_left = pygame.transform.rotate(self.bullet_up, 90)
+        self.bullet_down = pygame.transform.rotate(self.bullet_up, 180)
+        self.bullet_right = pygame.transform.rotate(self.bullet_up, 270)
+
+        self.speed = 8
