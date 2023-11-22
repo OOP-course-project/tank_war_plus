@@ -6,7 +6,7 @@ import food
 import bullet
 
 
-def single_player(screen):
+def single_player(screen, double_players: bool = False):
     background_image = pygame.image.load(r"../image/background.png").convert_alpha()
     home_image = pygame.image.load(r"../image/home.png").convert_alpha()
     home_destroyed_image = pygame.image.load(
@@ -30,6 +30,11 @@ def single_player(screen):
     player_tank1 = tank.Player_tank(1)
     all_tank_group.add(player_tank1)
     player_tank_group.add(player_tank1)
+
+    if double_players:
+        player_tank2 = tank.Player_tank(2)
+        all_tank_group.add(player_tank2)
+        player_tank_group.add(player_tank2)
 
     for i in range(1, 4):
         enemy = tank.Enemy_tank(i)
@@ -61,12 +66,18 @@ def single_player(screen):
     delay = 100
     moving1 = 0
     score1 = 0
+    running_T1 = True
     move_direction1 = "up"
+    last_player_shot_time_T1 = 0
+    if double_players:
+        moving2 = 0
+        score2 = 0
+        move_direction2 = "up"
+        running_T2 = True
+        last_player_shot_time_T2 = 0
     enemy_could_move = True
     switch_R1_R2_image = True
     home_survive = True
-    running_T1 = True
-    last_player_shot_time_T1 = 0
     clock = pygame.time.Clock()
     while not game_over:
         current_time = pygame.time.get_ticks()
@@ -79,6 +90,8 @@ def single_player(screen):
                 # player tank bullet cooling 0.5s
                 if current_time - last_player_shot_time_T1 >= 500:
                     player_tank1.bullet_not_cooling = True
+                if current_time - last_player_shot_time_T2 >= 500:
+                    player_tank2.bullet_not_cooling = True
 
             if event.type == ENEMYBULLETNOTCOOLINGEVENT:
                 for enemy in enemy_tank_group:
@@ -211,6 +224,74 @@ def single_player(screen):
                     player_tank1.bullet_not_cooling = True
                     last_player_shot_time_T1 = current_time
 
+        if double_players:
+            if player_tank2.life > 0:
+                # player 2 moving
+                if moving2:
+                    moving2 -= 1
+                    all_tank_group.remove(player_tank2)
+                    if player_tank2.move_func(
+                        all_tank_group, back_ground.brick_group, back_ground.iron_group
+                    ):
+                        moving2 += 1
+                    all_tank_group.add(player_tank2)
+                    running_T2 = True
+                else:
+                    if key_pressed[pygame.K_UP]:
+                        moving2 = 7
+                        move_direction2 = "up"
+                        player_tank2.direction = "up"
+                        all_tank_group.remove(player_tank2)
+                        if player_tank2.move_func(
+                            all_tank_group,
+                            back_ground.brick_group,
+                            back_ground.iron_group,
+                        ):
+                            moving2 = 0
+                        all_tank_group.add(player_tank2)
+                    elif key_pressed[pygame.K_DOWN]:
+                        moving2 = 7
+                        move_direction2 = "down"
+                        player_tank2.direction = "down"
+                        all_tank_group.remove(player_tank2)
+                        if player_tank2.move_func(
+                            all_tank_group,
+                            back_ground.brick_group,
+                            back_ground.iron_group,
+                        ):
+                            moving2 = 0
+                        all_tank_group.add(player_tank2)
+                    elif key_pressed[pygame.K_LEFT]:
+                        moving2 = 7
+                        move_direction2 = "left"
+                        player_tank2.direction = "left"
+                        all_tank_group.remove(player_tank2)
+                        if player_tank2.move_func(
+                            all_tank_group,
+                            back_ground.brick_group,
+                            back_ground.iron_group,
+                        ):
+                            moving2 = 0
+                        all_tank_group.add(player_tank2)
+                    elif key_pressed[pygame.K_RIGHT]:
+                        moving2 = 7
+                        move_direction2 = "right"
+                        player_tank2.direction = "right"
+                        all_tank_group.remove(player_tank2)
+                        if player_tank2.move_func(
+                            all_tank_group,
+                            back_ground.brick_group,
+                            back_ground.iron_group,
+                        ):
+                            moving2 = 0
+                        all_tank_group.add(player_tank2)
+                if key_pressed[pygame.K_KP0]:
+                    if current_time - last_player_shot_time_T2 >= 500:
+                        fire_sound.play()
+                        player_tank2.shoot()
+                        player_tank2.bullet_not_cooling = True
+                        last_player_shot_time_T2 = current_time
+
         # draw background
         screen.blit(background_image, (0, 0))
         # draw bricks
@@ -230,8 +311,13 @@ def single_player(screen):
 
         # show the score
         font = pygame.font.Font(None, 36)
-        score_text = font.render(f"Score1: {score1}", True, (255, 255, 255))
-        screen.blit(score_text, (10, 10))
+        score_text1 = font.render(f"Score1: {score1}", True, (255, 255, 255))
+        screen.blit(score_text1, (10, 10))
+        if double_players:
+            score_text2 = font.render(f"Score2: {score2}", True, (255, 255, 255))
+            screen.blit(
+                score_text2, (screen.get_width() - score_text2.get_width() - 10, 10)
+            )
 
         # draw player tank
         if player_tank1.life > 0:
@@ -246,6 +332,19 @@ def single_player(screen):
                     player_tank1.tank_R0,
                     (player_tank1.rect.left, player_tank1.rect.top),
                 )
+        if double_players:
+            if player_tank2.life > 0:
+                if switch_R1_R2_image and running_T2:
+                    screen.blit(
+                        player_tank2.tank_R0,
+                        (player_tank2.rect.left, player_tank2.rect.top),
+                    )
+                    running_T2 = False
+                else:
+                    screen.blit(
+                        player_tank2.tank_R1,
+                        (player_tank2.rect.left, player_tank2.rect.top),
+                    )
 
         for enemy_tank in enemy_tank_group:
             if enemy_tank.flash:
@@ -363,6 +462,60 @@ def single_player(screen):
                         3 + 12 * 24,
                         3 + 24 * 24,
                     )
+        if double_players:
+            for p2_bullet in player_tank2.bullets_list:
+                if p2_bullet.life:
+                    p2_bullet.move()
+                    screen.blit(p2_bullet.bullet, p2_bullet.rect)
+
+                    # bullet hit enemy bullet
+                    for enemy_bullet in enemy_bullet_group:
+                        if enemy_bullet.life:
+                            if pygame.sprite.collide_rect(p2_bullet, enemy_bullet):
+                                p2_bullet.life = False
+                                enemy_bullet.life = False
+                                pygame.sprite.spritecollide(
+                                    p2_bullet, enemy_bullet_group, True, None
+                                )
+
+                    # bullet hit enemy tank
+                    for enemy_tank in enemy_tank_group:
+                        if pygame.sprite.collide_rect(p2_bullet, enemy_tank):
+                            if isinstance(p2_bullet, bullet.Freeze_bullet):
+                                enemy_tank.slow_down = True
+                                enemy_tank.slow_down_timer = current_time
+                                enemy_tank.update()
+                            if isinstance(p2_bullet, bullet.Fire_bullet):
+                                enemy_tank.in_fire = True
+                                enemy_tank.in_fire_count = 4
+                                enemy_tank.in_fire_timer = current_time
+                                enemy_tank.update()
+                            bang_sound.play()
+                            p2_bullet.life = False
+                            p2_bullet.kill()
+                            if enemy_tank.life == 1:
+                                score2 += 1
+                            enemy_tank.life -= 1
+
+                    # bullet hit brick
+                    if pygame.sprite.spritecollide(
+                        p2_bullet, back_ground.brick_group, True, None
+                    ):
+                        p2_bullet.life = False
+                        p2_bullet.rect.left, p2_bullet.rect.top = (
+                            3 + 12 * 24,
+                            3 + 24 * 24,
+                        )
+
+                    # bullet hit iron
+                    if pygame.sprite.spritecollide(
+                        p2_bullet, back_ground.iron_group, False, None
+                    ):
+                        p2_bullet.life = False
+                        p2_bullet.rect.left, p2_bullet.rect.top = (
+                            3 + 12 * 24,
+                            3 + 24 * 24,
+                        )
 
         # draw enemy bullet
         for enemy_tank in enemy_tank_group:
@@ -383,6 +536,7 @@ def single_player(screen):
                     if enemy_could_move:
                         enemy_tank.bullet.move()
                     screen.blit(enemy_tank.bullet.bullet, enemy_tank.bullet.rect)
+
                     # if bullet hit player tank
                     if (
                         pygame.sprite.collide_rect(enemy_tank.bullet, player_tank1)
@@ -392,6 +546,15 @@ def single_player(screen):
                         enemy_tank.bullet.life = False
                         bang_sound.play()
                         moving1 = 0
+                    if double_players:
+                        if (
+                            pygame.sprite.collide_rect(enemy_tank.bullet, player_tank2)
+                            and player_tank2 in player_tank_group
+                        ):
+                            player_tank2.life -= 1
+                            enemy_tank.bullet.life = False
+                            bang_sound.play()
+                            moving2 = 0
 
                     # if bullet hit brick
                     if pygame.sprite.spritecollide(

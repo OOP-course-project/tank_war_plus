@@ -4,8 +4,7 @@ import traceback
 import wall
 import tank
 import food
-import single_game
-import double_game
+import game_mode
 
 
 def main():
@@ -15,14 +14,14 @@ def main():
     screen = pygame.display.set_mode(resolution)
     pygame.display.set_caption("Tank War")
 
-    game_mode_selection = "single"
+    game_mode_selection = "double"
 
     print("game_mode_selection:", game_mode_selection)
     if game_mode_selection == "double":
-        double_game.double_players(screen)
+        game_mode.single_player(screen, double_players=True)
 
     if game_mode_selection == "single":
-        single_game.single_player(screen)
+        game_mode.single_player(screen)
 
 
 if __name__ == "__main__":
