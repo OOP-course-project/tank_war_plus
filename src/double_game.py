@@ -69,6 +69,8 @@ def double_players(screen):
     home_survive = True
     running_T1 = True
     running_T2 = True
+    score1 = 0
+    score2 = 0
     last_player_shot_time_T1 = 0
     last_player_shot_time_T2 = 0
     clock = pygame.time.Clock()
