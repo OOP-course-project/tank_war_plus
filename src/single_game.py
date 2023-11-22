@@ -55,6 +55,9 @@ def single_player(screen):
     NOTMOVEEVENT = pygame.constants.USEREVENT + 3
     pygame.time.set_timer(NOTMOVEEVENT, 8000)
 
+    # judge if the game is over
+    game_over = False
+
     delay = 100
     moving1 = 0
     score1 = 0
@@ -65,7 +68,7 @@ def single_player(screen):
     running_T1 = True
     last_player_shot_time_T1 = 0
     clock = pygame.time.Clock()
-    while True:
+    while not game_over:
         current_time = pygame.time.get_ticks()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -143,9 +146,8 @@ def single_player(screen):
         key_pressed = pygame.key.get_pressed()
 
         if len(player_tank_group) <= 0:
-            pass
+            game_over = True
 
-        print([enemy_tank.life for enemy_tank in enemy_tank_group])
         # player 1 control
         if player_tank1.life > 0:
             if moving1:
@@ -419,3 +421,30 @@ def single_player(screen):
 
         pygame.display.flip()
         clock.tick(60)
+
+    if game_over:
+        screen.fill((0, 0, 0))
+        text = font.render("Game Over!", True, (255, 255, 255))
+        text_rect = text.get_rect()
+        text_rect.center = (screen.get_rect().centerx, screen.get_rect().centery)
+        screen.blit(text, text_rect)
+
+        score_text = font.render("Score: " + str(score1), True, (255, 255, 255))
+        score_rect = score_text.get_rect()
+        score_rect.center = (screen.get_rect().centerx, screen.get_rect().centery + 20)
+        screen.blit(score_text, score_rect)
+
+        text = font.render("Press space to play again.", True, (255, 255, 255))
+        text_rect = text.get_rect()
+        text_rect.center = (screen.get_rect().centerx, screen.get_rect().centery + 40)
+        screen.blit(text, text_rect)
+        pygame.display.flip()
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        single_player(screen)
