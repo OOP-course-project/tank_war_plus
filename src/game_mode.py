@@ -6,7 +6,7 @@ import food
 import bullet
 
 
-def single_player(screen, double_players: bool = False):
+def game_mode(screen, double_players: bool = False):
     background_image = pygame.image.load(r"../image/background.png").convert_alpha()
     home_image = pygame.image.load(r"../image/home.png").convert_alpha()
     home_destroyed_image = pygame.image.load(
@@ -610,4 +610,4 @@ def single_player(screen, double_players: bool = False):
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
-                        single_player(screen)
+                        game_mode(screen, double_players=double_players)

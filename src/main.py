@@ -18,10 +18,10 @@ def main():
 
     print("game_mode_selection:", game_mode_selection)
     if game_mode_selection == "double":
-        game_mode.single_player(screen, double_players=True)
+        game_mode.game_mode(screen, double_players=True)
 
     if game_mode_selection == "single":
-        game_mode.single_player(screen)
+        game_mode.game_mode(screen)
 
 
 if __name__ == "__main__":
