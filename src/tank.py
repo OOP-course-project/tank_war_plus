@@ -65,7 +65,9 @@ class Player_tank(pygame.sprite.Sprite):
 
     def shoot(self):
         new_bullet = random.choice(
-            [bullet.Normal_bullet(), bullet.Fire_bullet(), bullet.Freeze_bullet()]
+            [bullet.Normal_bullet()] * 3
+            + [bullet.Fire_bullet()]
+            + [bullet.Freeze_bullet()]
         )
         new_bullet.life = True
         # 根据坦克的方向来确定子弹的方向
