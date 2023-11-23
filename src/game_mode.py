@@ -80,6 +80,7 @@ def game_mode(screen, double_players: bool = False):
     home_survive = True
     clock = pygame.time.Clock()
     while not game_over:
+        print(moving1)
         current_time = pygame.time.get_ticks()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -332,6 +333,12 @@ def game_mode(screen, double_players: bool = False):
                     player_tank1.tank_R0,
                     (player_tank1.rect.left, player_tank1.rect.top),
                 )
+            if pygame.sprite.spritecollide(
+                player_tank1, back_ground.brick_group, False, None
+            ) or pygame.sprite.spritecollide(
+                player_tank1, back_ground.iron_group, False, None
+            ):
+                moving1 = 0
         if double_players:
             if player_tank2.life > 0:
                 if switch_R1_R2_image and running_T2:
@@ -345,6 +352,14 @@ def game_mode(screen, double_players: bool = False):
                         player_tank2.tank_R1,
                         (player_tank2.rect.left, player_tank2.rect.top),
                     )
+
+            if double_players:
+                if pygame.sprite.spritecollide(
+                    player_tank2, back_ground.brick_group, False, None
+                ) or pygame.sprite.spritecollide(
+                    player_tank2, back_ground.iron_group, False, None
+                ):
+                    moving2 = 0
 
         for enemy_tank in enemy_tank_group:
             if enemy_tank.flash:
