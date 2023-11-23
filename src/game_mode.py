@@ -589,13 +589,42 @@ def game_mode(screen, double_players: bool = False):
         screen.fill((0, 0, 0))
         text = font.render("Game Over!", True, (255, 255, 255))
         text_rect = text.get_rect()
-        text_rect.center = (screen.get_rect().centerx, screen.get_rect().centery)
-        screen.blit(text, text_rect)
-
-        score_text = font.render("Score: " + str(score1), True, (255, 255, 255))
-        score_rect = score_text.get_rect()
-        score_rect.center = (screen.get_rect().centerx, screen.get_rect().centery + 20)
-        screen.blit(score_text, score_rect)
+        score1_text = font.render(
+            "Player 1 Score: " + str(score1), True, (255, 255, 255)
+        )
+        if not double_players:
+            text_rect.center = (
+                screen.get_rect().centerx,
+                screen.get_rect().centery,
+            )
+            screen.blit(text, text_rect)
+            score_rect = score1_text.get_rect()
+            score_rect.center = (
+                screen.get_rect().centerx,
+                screen.get_rect().centery + 20,
+            )
+            screen.blit(score1_text, score_rect)
+        if double_players:
+            text_rect.center = (
+                screen.get_rect().centerx,
+                screen.get_rect().centery - 20,
+            )
+            screen.blit(text, text_rect)
+            score2_text = font.render(
+                "Player 2 Score: " + str(score2), True, (255, 255, 255)
+            )
+            score1_rect = score1_text.get_rect()
+            score2_rect = score2_text.get_rect()
+            score1_rect.center = (
+                screen.get_rect().centerx,
+                screen.get_rect().centery,
+            )
+            score2_rect.center = (
+                screen.get_rect().centerx,
+                screen.get_rect().centery + 20,
+            )
+            screen.blit(score1_text, score1_rect)
+            screen.blit(score2_text, score2_rect)
 
         text = font.render("Press space to play again.", True, (255, 255, 255))
         text_rect = text.get_rect()
