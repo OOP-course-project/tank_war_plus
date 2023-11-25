@@ -129,7 +129,6 @@ class Player_tank(pygame.sprite.Sprite):
         if self.life <= 0:
             self.kill()
         self.draw_health_bar(screen)
-        pygame.display.update()
         for b in self.bullets_list:
             if not b.life:
                 self.bullets_list.remove(b)
