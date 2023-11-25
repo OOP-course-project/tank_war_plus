@@ -5,7 +5,6 @@ import tank
 import food
 import bullet
 
-
 def game_mode(screen, double_players: bool = False):
     background_image = pygame.image.load(r"../image/background.png").convert_alpha()
     home_image = pygame.image.load(r"../image/home.png").convert_alpha()
