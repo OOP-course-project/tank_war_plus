@@ -103,6 +103,26 @@ class Tank_world:
                 self.moving2 = 0
         self.all_tank_group.add(player_tank)
 
+    def tank_shoot(self, player_tank, current_time):
+        if player_tank == self.player_tank1:
+            if current_time - self.last_player_shot_time_T1 >= 500:
+                self.fire_sound.play()
+                player_tank.shoot()
+                player_tank.bullet_not_cooling = True
+                if player_tank == self.player_tank1:
+                    self.last_player_shot_time_T1 = current_time
+                elif player_tank == self.player_tank2:
+                    self.last_player_shot_time_T2 = current_time
+        elif player_tank == self.player_tank2:
+            if current_time - self.last_player_shot_time_T2 >= 500:
+                self.fire_sound.play()
+                player_tank.shoot()
+                player_tank.bullet_not_cooling = True
+                if player_tank == self.player_tank1:
+                    self.last_player_shot_time_T1 = current_time
+                elif player_tank == self.player_tank2:
+                    self.last_player_shot_time_T2 = current_time
+
     def run(self):
         while not self.game_over:
             current_time = pygame.time.get_ticks()
@@ -197,11 +217,12 @@ class Tank_world:
                 elif key_pressed[pygame.K_d]:
                     self.tank_moving(self.player_tank1, "right", self.running_T1)
             if key_pressed[pygame.K_j]:
-                if current_time - self.last_player_shot_time_T1 >= 500:
-                    self.fire_sound.play()
-                    self.player_tank1.shoot()
-                    self.player_tank1.bullet_not_cooling = True
-                    self.last_player_shot_time_T1 = current_time
+                self.tank_shoot(self.player_tank1, current_time)
+                # if current_time - self.last_player_shot_time_T1 >= 500:
+                #     self.fire_sound.play()
+                #     self.player_tank1.shoot()
+                #     self.player_tank1.bullet_not_cooling = True
+                #     self.last_player_shot_time_T1 = current_time
 
         if self.double_players:
             if self.player_tank2.life > 0:
@@ -227,11 +248,12 @@ class Tank_world:
                     elif key_pressed[pygame.K_RIGHT]:
                         self.tank_moving(self.player_tank2, "right", self.running_T2)
                 if key_pressed[pygame.K_KP0]:
-                    if current_time - self.last_player_shot_time_T2 >= 500:
-                        self.fire_sound.play()
-                        self.player_tank2.shoot()
-                        self.player_tank2.bullet_not_cooling = True
-                        self.last_player_shot_time_T2 = current_time
+                    self.tank_shoot(self.player_tank2, current_time)
+                    # if current_time - self.last_player_shot_time_T2 >= 500:
+                    #     self.fire_sound.play()
+                    #     self.player_tank2.shoot()
+                    #     self.player_tank2.bullet_not_cooling = True
+                    #     self.last_player_shot_time_T2 = current_time
 
     def draw(self, current_time):
         # draw the background
@@ -608,5 +630,5 @@ if __name__ == "__main__":
     pygame.init()
     pygame.mixer.init()
     screen = pygame.display.set_mode((630, 630))
-    tw1 = Tank_world(screen, double_players=True)
+    tw1 = Tank_world(screen, double_players=False)
     tw1.run()
