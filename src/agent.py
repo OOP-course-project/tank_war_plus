@@ -19,14 +19,12 @@ class Tank_game_env(gym.Env):
         self.observation_space = gym.spaces.Box(
             low=0, high=255, shape=(630, 630, 3), dtype=np.uint8
         )
-        self.action_space = gym.spaces.Discrete(
-            5
-        )  # Assume there are 5 possible actions
+        self.action_space = gym.spaces.Discrete(5)
 
     def reset(self):
         # 重置游戏
         pygame.display.set_caption("Tank World")
-        self.game = tank_world.TankWorld(self.screen)
+        self.game = tank_world.Tank_world(self.screen)
         return self.get_observation()
 
     def step(self, action):
@@ -42,14 +40,14 @@ class Tank_game_env(gym.Env):
             self.game.tank_moving(self.game.player_tank1, "right")
         elif action == 4:
             self.game.tank_shoot(self.game.player_tank1)
-        self.game.update(action)
-        self.game.draw()
+        self.game.update()
+        self.game.draw(self.game.current_time)
         pygame.display.flip()
-        self.clock.tick(60)
+        self.game.clock.tick(60)
         return (
             self.get_observation(),
-            self.game.score1,
-            self.game.game_over,
+            self.game.get_reward(),
+            self.game.is_game_over(),
             {},
         )
 
@@ -62,6 +60,6 @@ env = DummyVecEnv([lambda: Tank_game_env()])
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = PPO("CnnPolicy", env, verbose=1, device=device)
-model.learn(total_timesteps=10000)
+model.learn(total_timesteps=1000000)
 
 model.save("tank_model")

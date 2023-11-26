@@ -124,42 +124,59 @@ class Tank_world:
                 elif player_tank == self.player_tank2:
                     self.last_player_shot_time_T2 = self.current_time
 
-    def run(self):
-        while not self.game_over:
-            self.current_time = pygame.time.get_ticks()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == self.PLAYERBULLETNOTCOOLINGEVENT:
+                # player tank bullet cooling 0.5s
+                if self.current_time - self.last_player_shot_time_T1 >= 500:
+                    self.player_tank1.bullet_not_cooling = True
+                if self.current_time - self.last_player_shot_time_T2 >= 500:
+                    self.player_tank2.bullet_not_cooling = True
+
+            if event.type == self.ENEMYBULLETNOTCOOLINGEVENT:
+                for enemy in self.enemy_tank_group:
+                    enemy.bullet_not_cooling = True
+
+            if event.type == self.NOTMOVEEVENT:
+                self.enemy_could_move = True
+
+            if event.type == self.DELAYEVENT:
+                if len(self.enemy_tank_group) < 4:
+                    enemy = tank.Enemy_tank()
+                    if pygame.sprite.spritecollide(
+                        enemy, self.all_tank_group, False, None
+                    ):
+                        break
+                    self.all_tank_group.add(enemy)
+                    self.enemy_tank_group.add(enemy)
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_c and pygame.KMOD_CTRL:
                     pygame.quit()
                     sys.exit()
 
-                if event.type == self.PLAYERBULLETNOTCOOLINGEVENT:
-                    # player tank bullet cooling 0.5s
-                    if self.current_time - self.last_player_shot_time_T1 >= 500:
-                        self.player_tank1.bullet_not_cooling = True
-                    if self.current_time - self.last_player_shot_time_T2 >= 500:
-                        self.player_tank2.bullet_not_cooling = True
+    def update(self):
+        self.current_time = pygame.time.get_ticks()
+        self.handle_events()
+        self.player_tank_group.update(self.screen)
+        self.enemy_tank_group.update()
+        for enemy_tank in self.enemy_tank_group:
+            if enemy_tank.slow_down:
+                if self.current_time - enemy_tank.slow_down_timer >= 5000:
+                    enemy_tank.slow_down = False
+        if len(self.player_tank_group) == 0:
+            self.game_over = True
 
-                if event.type == self.ENEMYBULLETNOTCOOLINGEVENT:
-                    for enemy in self.enemy_tank_group:
-                        enemy.bullet_not_cooling = True
+        self.draw(self.current_time)
 
-                if event.type == self.NOTMOVEEVENT:
-                    self.enemy_could_move = True
-
-                if event.type == self.DELAYEVENT:
-                    if len(self.enemy_tank_group) < 4:
-                        enemy = tank.Enemy_tank()
-                        if pygame.sprite.spritecollide(
-                            enemy, self.all_tank_group, False, None
-                        ):
-                            break
-                        self.all_tank_group.add(enemy)
-                        self.enemy_tank_group.add(enemy)
-
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_c and pygame.KMOD_CTRL:
-                        pygame.quit()
-                        sys.exit()
+    def run(self):
+        while not self.game_over:
+            self.current_time = pygame.time.get_ticks()
+            self.handle_events()
             # update the state of player tank
             self.player_tank_group.update(self.screen)
             self.enemy_tank_group.update()
@@ -168,7 +185,7 @@ class Tank_world:
                 if enemy_tank.slow_down:
                     if self.current_time - enemy_tank.slow_down_timer >= 5000:
                         enemy_tank.slow_down = False
-            if len(self.player_tank_group) <= 0:
+            if len(self.player_tank_group) == 0:
                 self.game_over = True
 
             self.control(self.current_time)
@@ -615,6 +632,12 @@ class Tank_world:
             )
             self.screen.blit(text, text_rect)
             pygame.display.flip()
+
+    def get_reward(self):
+        return self.score1
+
+    def is_game_over(self):
+        return self.game_over
 
 
 if __name__ == "__main__":
