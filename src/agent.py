@@ -13,6 +13,9 @@ class Tank_game_env(gym.Env):
         pygame.mixer.init()
         self.screen = pygame.display.set_mode((630, 630))
         self.double_players = False
+        self.game = tank_world.Tank_world(
+            self.screen, double_players=self.double_players
+        )
         self.observation_space = gym.spaces.Box(
             low=0, high=255, shape=(630, 630, 3), dtype=np.uint8
         )
@@ -29,14 +32,24 @@ class Tank_game_env(gym.Env):
     def step(self, action):
         # 在游戏中采取行动并返回下一个状态、奖励以及游戏是否结束的信息
         # 注意：根据你的游戏控制，修改行动处理
+        if action == 0:
+            self.game.tank_moving(self.game.player_tank1, "up")
+        elif action == 1:
+            self.game.tank_moving(self.game.player_tank1, "down")
+        elif action == 2:
+            self.game.tank_moving(self.game.player_tank1, "left")
+        elif action == 3:
+            self.game.tank_moving(self.game.player_tank1, "right")
+        elif action == 4:
+            self.game.tank_shoot(self.game.player_tank1)
         self.game.update(action)
         self.game.draw()
         pygame.display.flip()
         self.clock.tick(60)
         return (
             self.get_observation(),
-            self.game.get_reward(),
-            self.game.is_game_over(),
+            self.game.score1,
+            self.game.game_over,
             {},
         )
 
