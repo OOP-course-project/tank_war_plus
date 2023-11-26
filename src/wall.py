@@ -1,7 +1,7 @@
 import pygame
 
-brick_image = pygame.image.load(r"..\image\brick.png")
-iron_image = pygame.image.load(r"..\image\iron.png")
+brick_image = pygame.image.load(r"../image/brick.png")
+iron_image = pygame.image.load(r"../image/iron.png")
 
 
 class Brick(pygame.sprite.Sprite):
@@ -18,7 +18,7 @@ class Iron(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
 
-class Map():
+class Map:
     def __init__(self):
         self.brick_group = pygame.sprite.Group()
         self.iron_group = pygame.sprite.Group()
@@ -33,8 +33,16 @@ class Map():
         Y46 = [13, 14]
         X5 = [12, 13]
         Y5 = [16, 17]
-        X0Y0 = [(11, 23), (12, 23), (13, 23), (14, 23),
-                (11, 24), (14, 24), (11, 25), (14, 25)]
+        X0Y0 = [
+            (11, 23),
+            (12, 23),
+            (13, 23),
+            (14, 23),
+            (11, 24),
+            (14, 24),
+            (11, 25),
+            (14, 25),
+        ]
         for x in X1379:
             for y in Y1379:
                 self.brick = Brick()
@@ -61,7 +69,16 @@ class Map():
             self.brick_group.add(self.brick)
 
         # 画石头
-        for x, y in [(0, 14), (1, 14), (12, 6), (13, 6), (12, 7), (13, 7), (24, 14), (25, 14)]:
+        for x, y in [
+            (0, 14),
+            (1, 14),
+            (12, 6),
+            (13, 6),
+            (12, 7),
+            (13, 7),
+            (24, 14),
+            (25, 14),
+        ]:
             self.iron = Iron()
             self.iron.rect.left, self.iron.rect.top = 3 + x * 24, 3 + y * 24
             self.iron_group.add(self.iron)

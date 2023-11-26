@@ -79,7 +79,6 @@ def game_mode(screen, double_players: bool = False):
     home_survive = True
     clock = pygame.time.Clock()
     while not game_over:
-        print(moving1)
         current_time = pygame.time.get_ticks()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -359,6 +358,7 @@ def game_mode(screen, double_players: bool = False):
                     player_tank2, back_ground.iron_group, False, None
                 ):
                     moving2 = 0
+        player_tank_group.update(screen)
 
         for enemy_tank in enemy_tank_group:
             if enemy_tank.flash:
@@ -411,7 +411,6 @@ def game_mode(screen, double_players: bool = False):
                 if enemy_tank.times == 0:
                     enemy_tank.flash = True
 
-        player_tank_group.update(screen)
         # draw player 1 bullet
         for p1_bullet in player_tank1.bullets_list:
             if p1_bullet.life:
