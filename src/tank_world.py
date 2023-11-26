@@ -69,17 +69,39 @@ class Tank_world:
         self.moving1 = 0
         self.score1 = 0
         self.running_T1 = True
-        self.move_direction1 = "up"
         self.last_player_shot_time_T1 = 0
         if self.double_players:
             self.moving2 = 0
             self.score2 = 0
-            self.move_direction2 = "up"
             self.running_T2 = True
             self.last_player_shot_time_T2 = 0
         self.enemy_could_move = True
         self.switch_R1_R2_image = True
         self.home_survive = True
+
+    def tank_moving(
+        self,
+        player_tank,
+        direction,
+        moving_state,
+    ):
+        if player_tank == self.player_tank1:
+            self.moving1 = 7
+        elif player_tank == self.player_tank2:
+            self.moving2 = 7
+        player_tank.direction = direction
+        moving_state = True
+        self.all_tank_group.remove(player_tank)
+        if player_tank.move_func(
+            self.all_tank_group,
+            self.back_ground.brick_group,
+            self.back_ground.iron_group,
+        ):
+            if player_tank == self.player_tank1:
+                self.moving1 = 0
+            elif player_tank == self.player_tank2:
+                self.moving2 = 0
+        self.all_tank_group.add(player_tank)
 
     def run(self):
         while not self.game_over:
@@ -166,57 +188,14 @@ class Tank_world:
                 self.running_T1 = True
             if not self.moving1:
                 if key_pressed[pygame.K_w]:
-                    self.moving1 = 7
-                    self.move_direction1 = "up"
-                    self.player_tank1.direction = "up"
-                    self.running_T1 = True
-                    self.all_tank_group.remove(self.player_tank1)
-                    if self.player_tank1.move_func(
-                        self.all_tank_group,
-                        self.back_ground.brick_group,
-                        self.back_ground.iron_group,
-                    ):
-                        self.moving1 = 0
-                    self.all_tank_group.add(self.player_tank1)
+                    self.tank_moving(self.player_tank1, "up", self.running_T1)
+
                 elif key_pressed[pygame.K_s]:
-                    self.moving1 = 7
-                    self.move_direction1 = "down"
-                    self.player_tank1.direction = "down"
-                    self.running_T1 = True
-                    self.all_tank_group.remove(self.player_tank1)
-                    if self.player_tank1.move_func(
-                        self.all_tank_group,
-                        self.back_ground.brick_group,
-                        self.back_ground.iron_group,
-                    ):
-                        self.moving1 = 0
-                    self.all_tank_group.add(self.player_tank1)
+                    self.tank_moving(self.player_tank1, "down", self.running_T1)
                 elif key_pressed[pygame.K_a]:
-                    self.moving1 = 7
-                    self.move_direction1 = "left"
-                    self.player_tank1.direction = "left"
-                    self.running_T1 = True
-                    self.all_tank_group.remove(self.player_tank1)
-                    if self.player_tank1.move_func(
-                        self.all_tank_group,
-                        self.back_ground.brick_group,
-                        self.back_ground.iron_group,
-                    ):
-                        self.moving1 = 0
-                    self.all_tank_group.add(self.player_tank1)
+                    self.tank_moving(self.player_tank1, "left", self.running_T1)
                 elif key_pressed[pygame.K_d]:
-                    self.moving1 = 7
-                    self.move_direction1 = "right"
-                    self.player_tank1.direction = "right"
-                    self.running_T1 = True
-                    self.all_tank_group.remove(self.player_tank1)
-                    if self.player_tank1.move_func(
-                        self.all_tank_group,
-                        self.back_ground.brick_group,
-                        self.back_ground.iron_group,
-                    ):
-                        self.moving1 = 0
-                    self.all_tank_group.add(self.player_tank1)
+                    self.tank_moving(self.player_tank1, "right", self.running_T1)
             if key_pressed[pygame.K_j]:
                 if current_time - self.last_player_shot_time_T1 >= 500:
                     self.fire_sound.play()
@@ -240,53 +219,13 @@ class Tank_world:
                     self.running_T2 = True
                 else:
                     if key_pressed[pygame.K_UP]:
-                        self.moving2 = 7
-                        self.move_direction2 = "up"
-                        self.player_tank2.direction = "up"
-                        self.all_tank_group.remove(self.player_tank2)
-                        if self.player_tank2.move_func(
-                            self.all_tank_group,
-                            self.back_ground.brick_group,
-                            self.back_ground.iron_group,
-                        ):
-                            self.moving2 = 0
-                        self.all_tank_group.add(self.player_tank2)
+                        self.tank_moving(self.player_tank2, "up", self.running_T2)
                     elif key_pressed[pygame.K_DOWN]:
-                        self.moving2 = 7
-                        self.move_direction2 = "down"
-                        self.player_tank2.direction = "down"
-                        self.all_tank_group.remove(self.player_tank2)
-                        if self.player_tank2.move_func(
-                            self.all_tank_group,
-                            self.back_ground.brick_group,
-                            self.back_ground.iron_group,
-                        ):
-                            self.moving2 = 0
-                        self.all_tank_group.add(self.player_tank2)
+                        self.tank_moving(self.player_tank2, "down", self.running_T2)
                     elif key_pressed[pygame.K_LEFT]:
-                        self.moving2 = 7
-                        self.move_direction2 = "left"
-                        self.player_tank2.direction = "left"
-                        self.all_tank_group.remove(self.player_tank2)
-                        if self.player_tank2.move_func(
-                            self.all_tank_group,
-                            self.back_ground.brick_group,
-                            self.back_ground.iron_group,
-                        ):
-                            self.moving2 = 0
-                        self.all_tank_group.add(self.player_tank2)
+                        self.tank_moving(self.player_tank2, "left", self.running_T2)
                     elif key_pressed[pygame.K_RIGHT]:
-                        self.moving2 = 7
-                        self.move_direction2 = "right"
-                        self.player_tank2.direction = "right"
-                        self.all_tank_group.remove(self.player_tank2)
-                        if self.player_tank2.move_func(
-                            self.all_tank_group,
-                            self.back_ground.brick_group,
-                            self.back_ground.iron_group,
-                        ):
-                            self.moving2 = 0
-                        self.all_tank_group.add(self.player_tank2)
+                        self.tank_moving(self.player_tank2, "right", self.running_T2)
                 if key_pressed[pygame.K_KP0]:
                     if current_time - self.last_player_shot_time_T2 >= 500:
                         self.fire_sound.play()
