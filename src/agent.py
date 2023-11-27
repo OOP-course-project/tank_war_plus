@@ -87,7 +87,7 @@ class Tank_game_env(gym.Env):
 env = DummyVecEnv([lambda: Tank_game_env()])
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = PPO("MultiInputPolicy", env, verbose=1, device=device)
+model = PPO("DictPolicy", env, verbose=1, device=device)
 model.learn(total_timesteps=50000)
 
 model.save("tank_model")
