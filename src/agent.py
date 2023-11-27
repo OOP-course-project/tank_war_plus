@@ -1,6 +1,7 @@
 import gym
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
+from stable_baselines3.common.callbacks import CheckpointCallback
 import numpy as np
 import pygame
 import tank_world
@@ -13,9 +14,7 @@ class Tank_game_env(gym.Env):
         pygame.mixer.init()
         self.screen = pygame.display.set_mode((630, 630))
         self.double_players = False
-        self.game = tank_world.Tank_world(
-            self.screen, double_players=self.double_players
-        )
+        self.game = None
         self.observation_space = gym.spaces.Dict(
             {
                 "brick_pos": gym.spaces.Box(
@@ -39,38 +38,37 @@ class Tank_game_env(gym.Env):
 
     def reset(self):
         # 重置游戏
-        pygame.display.set_caption("Tank World")
-        self.game = tank_world.Tank_world(self.screen)
+        self.game = tank_world.Tank_world(
+            self.screen, double_players=self.double_players
+        )
         return self.get_observation()
 
     def step(self, action):
         # 在游戏中采取行动并返回下一个状态、奖励以及游戏是否结束的信息
         # 注意：根据你的游戏控制，修改行动处理
-        if not self.game.moving1:
-            if action == 0:
-                self.game.tank_moving(self.game.player_tank1, "up")
-            elif action == 1:
-                self.game.tank_moving(self.game.player_tank1, "down")
-            elif action == 2:
-                self.game.tank_moving(self.game.player_tank1, "left")
-            elif action == 3:
-                self.game.tank_moving(self.game.player_tank1, "right")
-        if action == 4:
+        if action == 0:
+            self.game.tank_moving(self.game.player_tank1, "up")
+        elif action == 1:
+            self.game.tank_moving(self.game.player_tank1, "down")
+        elif action == 2:
+            self.game.tank_moving(self.game.player_tank1, "left")
+        elif action == 3:
+            self.game.tank_moving(self.game.player_tank1, "right")
+        elif action == 4:
             self.game.tank_shoot(self.game.player_tank1)
-        if action == 5:
+        elif action == 5:
             pass
         self.game.update()
-        self.game.draw(self.game.current_time)
         pygame.display.flip()
         self.game.clock.tick(60)
-        
+
         observation = self.get_observation()
         reward = self.game.get_reward()
         done = self.game.is_game_over()
 
         if done:
             reward = reward - 5
-        
+
         return observation, reward, done, {}
 
     def get_observation(self):
@@ -90,10 +88,22 @@ class Tank_game_env(gym.Env):
         return observation
 
 
+checkpoint_callback = CheckpointCallback(
+    save_freq=10000,  # 每隔10000个训练步骤保存一次模型
+    save_path="./checkpoints/",
+    name_prefix="tank_model",
+)
+
 env = DummyVecEnv([lambda: Tank_game_env()])
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = PPO("MultiInputPolicy", env, verbose=1, device=device)
-model.learn(total_timesteps=50000)
+model = PPO(
+    "MultiInputPolicy",
+    env,
+    verbose=1,
+    device=device,
+    tensorboard_log="./PPOTankWorld_tensorboard/",
+)
+model.learn(total_timesteps=50000, callback=checkpoint_callback)
 
 model.save("tank_model")
