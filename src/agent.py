@@ -1,4 +1,4 @@
-import gym
+import gymnasium
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.callbacks import CheckpointCallback
@@ -8,44 +8,41 @@ import tank_world
 import torch
 
 
-class Tank_game_env(gym.Env):
+class Tank_game_env(gymnasium.Env):
     def __init__(self) -> None:
         pygame.init()
         pygame.mixer.init()
         self.screen = pygame.display.set_mode((630, 630))
         self.double_players = False
         self.game = None
-        self.observation_space = gym.spaces.Dict(
+        self.observation_space = gymnasium.spaces.Dict(
             {
-                "brick_pos": gym.spaces.Box(
+                "brick_pos": gymnasium.spaces.Box(
                     low=0, high=1, shape=(26, 26), dtype=np.uint8
                 ),
-                "iron_pos": gym.spaces.Box(
+                "iron_pos": gymnasium.spaces.Box(
                     low=0, high=1, shape=(26, 26), dtype=np.uint8
                 ),
-                "enemy_pos": gym.spaces.Box(
+                "enemy_pos": gymnasium.spaces.Box(
                     low=0, high=1, shape=(13, 13), dtype=np.uint8
                 ),
-                "player_pos": gym.spaces.Box(
+                "player_pos": gymnasium.spaces.Box(
                     low=0, high=1, shape=(13, 13), dtype=np.uint8
                 ),
-                "bullet_pos": gym.spaces.Box(
+                "bullet_pos": gymnasium.spaces.Box(
                     low=0, high=1, shape=(52, 52), dtype=np.uint8
                 ),
             }
         )
-        self.action_space = gym.spaces.Discrete(6)
+        self.action_space = gymnasium.spaces.Discrete(6)
 
-    def reset(self):
-        # 重置游戏
+    def reset(self, seed=None):
         self.game = tank_world.Tank_world(
             self.screen, double_players=self.double_players
         )
-        return self.get_observation()
+        return self.get_observation(), {}
 
     def step(self, action):
-        # 在游戏中采取行动并返回下一个状态、奖励以及游戏是否结束的信息
-        # 注意：根据你的游戏控制，修改行动处理
         if action == 0:
             self.game.tank_moving(self.game.player_tank1, "up")
         elif action == 1:
@@ -67,12 +64,12 @@ class Tank_game_env(gym.Env):
         done = self.game.is_game_over()
 
         if done:
-            reward = reward - 2
+            reward = reward - 1
 
-        return observation, reward, done, {}
+        return observation, reward, done, False, {}
 
     def get_observation(self):
-        # 将当前游戏屏幕捕获为观察值
+        # observation = pygame.surfarray.array3d(self.screen)
         brick_pos = np.array(self.game.brick_pos)
         iron_pos = np.array(self.game.iron_pos)
         enemy_pos = np.array(self.game.enemy_pos)
@@ -89,24 +86,32 @@ class Tank_game_env(gym.Env):
 
 
 checkpoint_callback = CheckpointCallback(
-    save_freq=20000,  # 每隔10000个训练步骤保存一次模型
-    save_path="./checkpoints/",
+    save_freq=20000,  # Save the model every 20000 steps
+    save_path="./checkpoints_new/",
     name_prefix="tank_model",
 )
 
 env = DummyVecEnv([lambda: Tank_game_env()])
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = PPO(
-    "MultiInputPolicy",
-    env,
-    verbose=1,
-    learning_rate=1e-3,
+
+# model = PPO(
+#     "MultiInputPolicy",
+#     env,
+#     verbose=1,
+#     learning_rate=3e-4,
+#     device=device,
+#     batch_size=128,
+#     tensorboard_log="./PPOTankWorld_tensorboard/",
+# )
+
+model = PPO.load(
+    "./tank_model.zip",
+    env=env,
     device=device,
-    batch_size=128,
     tensorboard_log="./PPOTankWorld_tensorboard/",
 )
-model.learn(total_timesteps=200000, callback=checkpoint_callback)
 
+model.learn(total_timesteps=300000, callback=checkpoint_callback)
 
 model.save("tank_model")
