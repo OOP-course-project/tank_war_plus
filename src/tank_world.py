@@ -35,7 +35,14 @@ class Tank_world:
         self.enemy_bullet_group = pygame.sprite.Group()
 
         self.back_ground = wall.Map()
-        self.brick_map_data = [[0 for i in range(26)] for j in range(26)]
+
+        # position for reinforcement learning observation
+        self.brick_pos = [[0 for i in range(26)] for j in range(26)]
+        self.iron_pos = [[0 for i in range(26)] for j in range(26)]
+        self.enemy_pos = [[0 for i in range(13)] for j in range(13)]
+        self.player_pos = [[0 for i in range(13)] for j in range(13)]
+        self.bullet_pos = [[0 for i in range(52)] for j in range(52)]
+
         # self.foods = food.Food()
 
         self.player_tank1 = tank.Player_tank(1)
@@ -71,6 +78,7 @@ class Tank_world:
         self.delay = 100
         self.moving1 = 0
         self.score1 = 0
+        self.damage1 = 0
         self.running_T1 = True
         self.last_player_shot_time_T1 = 0
         if self.double_players:
@@ -166,11 +174,32 @@ class Tank_world:
         self.handle_events()
         self.player_tank_group.update(self.screen)
         self.enemy_tank_group.update()
-        self.brick_map_data = [[0 for i in range(26)] for j in range(26)]
+        # update the postion of objects for reinforcement learning observation
+        self.brick_pos = [[0 for i in range(26)] for j in range(26)]
         for brick in self.back_ground.brick_group:
-            self.brick_map_data[(brick.rect.top - 3) // 24][
-                (brick.rect.left - 3) // 24
-            ] = 1
+            self.brick_pos[(brick.rect.left - 3) // 24][(brick.rect.top - 3) // 24] = 1
+        self.iron_pos = [[0 for i in range(26)] for j in range(26)]
+        for iron in self.back_ground.iron_group:
+            self.iron_pos[(iron.rect.left - 3) // 24][(iron.rect.top - 3) // 24] = 1
+        self.enemy_pos = [[0 for i in range(13)] for j in range(13)]
+        for enemy in self.enemy_tank_group:
+            self.enemy_pos[(enemy.rect.left - 3) // 48][(enemy.rect.top - 3) // 48] = 1
+        self.player_pos = [[0 for i in range(13)] for j in range(13)]
+        for play in self.player_tank_group:
+            self.player_pos[(play.rect.left - 3) // 48][(play.rect.top - 3) // 48] = 1
+        for bullet in self.enemy_bullet_group:
+            if (
+                bullet.rect.left < 3
+                or bullet.rect.right > 627
+                or bullet.rect.top < 3
+                or bullet.rect.bottom > 627
+            ):
+                bullet.life = False
+            else:
+                self.bullet_pos[(bullet.rect.left - 3) // 12][
+                    (bullet.rect.top - 3) // 12
+                ] = 1
+
         for enemy_tank in self.enemy_tank_group:
             if enemy_tank.slow_down:
                 if self.current_time - enemy_tank.slow_down_timer >= 5000:
@@ -182,11 +211,6 @@ class Tank_world:
 
     def run(self):
         while not self.game_over:
-            self.brick_map_data = [[0 for i in range(26)] for j in range(26)]
-            for brick in self.back_ground.brick_group:
-                self.brick_map_data[(brick.rect.top - 3) // 24][
-                    (brick.rect.left - 3) // 24
-                ] = 1
             self.current_time = pygame.time.get_ticks()
             self.handle_events()
             # update the state of player tank
@@ -449,9 +473,19 @@ class Tank_world:
                         self.bang_sound.play()
                         p1_bullet.life = False
                         p1_bullet.kill()
-                        if enemy_tank.life == 1:
+                        if enemy_tank.life == 1 or (
+                            isinstance(p1_bullet, bullet.Fire_bullet)
+                            and enemy_tank.life == 2
+                        ):
                             self.score1 += 1
                         enemy_tank.life -= 1
+                        if (
+                            isinstance(p1_bullet, bullet.Fire_bullet)
+                            and enemy_tank.life == 2
+                        ):
+                            self.damage1 += 2
+                        else:
+                            self.damage1 += 1
 
                 # bullet hit brick
                 if pygame.sprite.spritecollide(
@@ -646,7 +680,8 @@ class Tank_world:
             pygame.display.flip()
 
     def get_reward(self):
-        return self.score1
+        reward = self.score1 + 0.4 * self.damage1
+        return reward
 
     def is_game_over(self):
         return self.game_over

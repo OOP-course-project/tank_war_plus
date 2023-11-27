@@ -82,7 +82,3 @@ class Map:
             self.iron = Iron()
             self.iron.rect.left, self.iron.rect.top = 3 + x * 24, 3 + y * 24
             self.iron_group.add(self.iron)
-
-
-if __name__ == "__main__":
-    print()

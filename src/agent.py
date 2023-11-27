@@ -16,8 +16,24 @@ class Tank_game_env(gym.Env):
         self.game = tank_world.Tank_world(
             self.screen, double_players=self.double_players
         )
-        self.observation_space = gym.spaces.Box(
-            low=0, high=255, shape=(630, 630, 3), dtype=np.uint8
+        self.observation_space = gym.spaces.Dict(
+            {
+                "brick_pos": gym.spaces.Box(
+                    low=0, high=1, shape=(26, 26), dtype=np.uint8
+                ),
+                "iron_pos": gym.spaces.Box(
+                    low=0, high=1, shape=(26, 26), dtype=np.uint8
+                ),
+                "enemy_pos": gym.spaces.Box(
+                    low=0, high=1, shape=(13, 13), dtype=np.uint8
+                ),
+                "player_pos": gym.spaces.Box(
+                    low=0, high=1, shape=(13, 13), dtype=np.uint8
+                ),
+                "bullet_pos": gym.spaces.Box(
+                    low=0, high=1, shape=(52, 52), dtype=np.uint8
+                ),
+            }
         )
         self.action_space = gym.spaces.Discrete(5)
 
@@ -53,13 +69,25 @@ class Tank_game_env(gym.Env):
 
     def get_observation(self):
         # 将当前游戏屏幕捕获为观察值
-        return pygame.surfarray.array3d(self.screen)
+        brick_pos = np.array(self.game.brick_pos)
+        iron_pos = np.array(self.game.iron_pos)
+        enemy_pos = np.array(self.game.enemy_pos)
+        player_pos = np.array(self.game.player_pos)
+        bullet_pos = np.array(self.game.bullet_pos)
+        observation = {
+            "brick_pos": brick_pos,
+            "iron_pos": iron_pos,
+            "enemy_pos": enemy_pos,
+            "player_pos": player_pos,
+            "bullet_pos": bullet_pos,
+        }
+        return observation
 
 
 env = DummyVecEnv([lambda: Tank_game_env()])
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = PPO("CnnPolicy", env, verbose=1, device=device)
-model.learn(total_timesteps=1000000)
+model = PPO("MultiInputPolicy", env, verbose=1, device=device)
+model.learn(total_timesteps=50000)
 
 model.save("tank_model")
