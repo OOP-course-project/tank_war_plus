@@ -5,6 +5,7 @@ import tank
 import food
 import bullet
 import pygame
+import numpy as np
 
 
 class Tank_world:
@@ -34,6 +35,7 @@ class Tank_world:
         self.enemy_bullet_group = pygame.sprite.Group()
 
         self.back_ground = wall.Map()
+        self.brick_map_data = [[0 for i in range(26)] for j in range(26)]
         # self.foods = food.Food()
 
         self.player_tank1 = tank.Player_tank(1)
@@ -164,6 +166,11 @@ class Tank_world:
         self.handle_events()
         self.player_tank_group.update(self.screen)
         self.enemy_tank_group.update()
+        self.brick_map_data = [[0 for i in range(26)] for j in range(26)]
+        for brick in self.back_ground.brick_group:
+            self.brick_map_data[(brick.rect.top - 3) // 24][
+                (brick.rect.left - 3) // 24
+            ] = 1
         for enemy_tank in self.enemy_tank_group:
             if enemy_tank.slow_down:
                 if self.current_time - enemy_tank.slow_down_timer >= 5000:
@@ -175,6 +182,11 @@ class Tank_world:
 
     def run(self):
         while not self.game_over:
+            self.brick_map_data = [[0 for i in range(26)] for j in range(26)]
+            for brick in self.back_ground.brick_group:
+                self.brick_map_data[(brick.rect.top - 3) // 24][
+                    (brick.rect.left - 3) // 24
+                ] = 1
             self.current_time = pygame.time.get_ticks()
             self.handle_events()
             # update the state of player tank
