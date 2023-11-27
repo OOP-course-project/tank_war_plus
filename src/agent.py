@@ -67,7 +67,7 @@ class Tank_game_env(gym.Env):
         done = self.game.is_game_over()
 
         if done:
-            reward = reward - 10
+            reward = reward - 2
 
         return observation, reward, done, {}
 
