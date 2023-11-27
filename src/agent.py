@@ -46,28 +46,32 @@ class Tank_game_env(gym.Env):
     def step(self, action):
         # 在游戏中采取行动并返回下一个状态、奖励以及游戏是否结束的信息
         # 注意：根据你的游戏控制，修改行动处理
-        if action == 0:
-            self.game.tank_moving(self.game.player_tank1, "up")
-        elif action == 1:
-            self.game.tank_moving(self.game.player_tank1, "down")
-        elif action == 2:
-            self.game.tank_moving(self.game.player_tank1, "left")
-        elif action == 3:
-            self.game.tank_moving(self.game.player_tank1, "right")
-        elif action == 4:
+        if not self.game.moving1:
+            if action == 0:
+                self.game.tank_moving(self.game.player_tank1, "up")
+            elif action == 1:
+                self.game.tank_moving(self.game.player_tank1, "down")
+            elif action == 2:
+                self.game.tank_moving(self.game.player_tank1, "left")
+            elif action == 3:
+                self.game.tank_moving(self.game.player_tank1, "right")
+        if action == 4:
             self.game.tank_shoot(self.game.player_tank1)
-        elif action == 5:
+        if action == 5:
             pass
         self.game.update()
         self.game.draw(self.game.current_time)
         pygame.display.flip()
         self.game.clock.tick(60)
-        return (
-            self.get_observation(),
-            self.game.get_reward(),
-            self.game.is_game_over(),
-            {},
-        )
+        
+        observation = self.get_observation()
+        reward = self.game.get_reward()
+        done = self.game.is_game_over()
+
+        if done:
+            reward = reward - 5
+        
+        return observation, reward, done, {}
 
     def get_observation(self):
         # 将当前游戏屏幕捕获为观察值
