@@ -67,7 +67,7 @@ class Tank_game_env(gym.Env):
         done = self.game.is_game_over()
 
         if done:
-            reward = reward - 5
+            reward = reward - 10
 
         return observation, reward, done, {}
 
@@ -89,7 +89,7 @@ class Tank_game_env(gym.Env):
 
 
 checkpoint_callback = CheckpointCallback(
-    save_freq=10000,  # 每隔10000个训练步骤保存一次模型
+    save_freq=20000,  # 每隔10000个训练步骤保存一次模型
     save_path="./checkpoints/",
     name_prefix="tank_model",
 )
@@ -101,9 +101,12 @@ model = PPO(
     "MultiInputPolicy",
     env,
     verbose=1,
+    learning_rate=1e-3,
     device=device,
+    batch_size=128,
     tensorboard_log="./PPOTankWorld_tensorboard/",
 )
-model.learn(total_timesteps=50000, callback=checkpoint_callback)
+model.learn(total_timesteps=200000, callback=checkpoint_callback)
+
 
 model.save("tank_model")

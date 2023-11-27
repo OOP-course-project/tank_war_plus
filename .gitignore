@@ -1,3 +1,4 @@
 .vscode/*
 src/__pycache__/*
 src/PPOTankWorld_tensorboard/*
+src/checkpoints/*
