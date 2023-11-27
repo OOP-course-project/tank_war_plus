@@ -35,7 +35,7 @@ class Tank_game_env(gym.Env):
                 ),
             }
         )
-        self.action_space = gym.spaces.Discrete(5)
+        self.action_space = gym.spaces.Discrete(6)
 
     def reset(self):
         # 重置游戏
@@ -56,6 +56,8 @@ class Tank_game_env(gym.Env):
             self.game.tank_moving(self.game.player_tank1, "right")
         elif action == 4:
             self.game.tank_shoot(self.game.player_tank1)
+        elif action == 5:
+            pass
         self.game.update()
         self.game.draw(self.game.current_time)
         pygame.display.flip()
@@ -87,7 +89,7 @@ class Tank_game_env(gym.Env):
 env = DummyVecEnv([lambda: Tank_game_env()])
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = PPO("DictPolicy", env, verbose=1, device=device)
+model = PPO("MultiInputPolicy", env, verbose=1, device=device)
 model.learn(total_timesteps=50000)
 
 model.save("tank_model")

@@ -680,7 +680,7 @@ class Tank_world:
             pygame.display.flip()
 
     def get_reward(self):
-        reward = self.score1 + 0.4 * self.damage1
+        reward = self.score1 + 0.4 * self.damage1 + 1e-6 * self.current_time
         return reward
 
     def is_game_over(self):
