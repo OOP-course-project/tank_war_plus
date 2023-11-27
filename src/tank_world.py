@@ -43,6 +43,12 @@ class Tank_world:
         self.player_pos = [[0 for i in range(13)] for j in range(13)]
         self.bullet_pos = [[0 for i in range(52)] for j in range(52)]
 
+        # postion for BFS algorithm
+        self.brick_pos_BFS = [[0 for i in range(630)] for j in range(630)]
+        self.iron_pos_BFS = [[0 for i in range(630)] for j in range(630)]
+        self.player_pos_BFS = [[0 for i in range(630)] for j in range(630)]
+        self.enemy_pos_BFS = [[0 for i in range(630)] for j in range(630)]
+
         # self.foods = food.Food()
 
         self.player_tank1 = tank.Player_tank(1)
@@ -174,6 +180,7 @@ class Tank_world:
         self.handle_events()
         self.player_tank_group.update(self.screen)
         self.enemy_tank_group.update()
+
         # update the postion of objects for reinforcement learning observation
         self.brick_pos = [[0 for i in range(26)] for j in range(26)]
         for brick in self.back_ground.brick_group:
@@ -199,6 +206,16 @@ class Tank_world:
                 self.bullet_pos[(bullet.rect.left - 3) // 12][
                     (bullet.rect.top - 3) // 12
                 ] = 1
+
+        # update the postion of objects for BFS algorithm
+        self.brick_pos_BFS = [[0 for i in range(630)] for j in range(630)]
+        # for brick in self.back_ground.brick_group:
+        self.iron_pos_BFS = [[0 for i in range(630)] for j in range(630)]
+        # for iron in self.back_ground.iron_group:
+        self.player_pos_BFS = [[0 for i in range(630)] for j in range(630)]
+        # for play in self.player_tank_group:
+        self.enemy_pos_BFS = [[0 for i in range(630)] for j in range(630)]
+        # for enemy in self.enemy_tank_group:
 
         for enemy_tank in self.enemy_tank_group:
             if enemy_tank.slow_down:
