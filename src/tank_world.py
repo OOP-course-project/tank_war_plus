@@ -7,6 +7,24 @@ import bullet
 import pygame
 import numpy as np
 
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def direction_to(self, other):
+        if self.x == other.x:
+            if self.y < other.y:
+                return "down"
+            elif self.y > other.y:
+                return "up"
+        elif self.y == other.y:
+            if self.x < other.x:
+                return "right"
+            elif self.x > other.x:
+                return "left"
+        return "unknown"
+
 
 class Tank_world:
     def __init__(self, screen, double_players=False) -> None:
@@ -225,6 +243,123 @@ class Tank_world:
             self.game_over = True
 
         self.draw(self.current_time)
+
+        
+    def create_bfs_maze(self):
+        # 坦克和迷宫单元格大小为48x48像素，子单元格大小为24x24像素
+        cell_size = 48
+        subcell_size = 24
+        maze_size = 630 // cell_size
+
+        # 初始化迷宫矩阵
+        maze = [[0 for _ in range(maze_size)] for _ in range(maze_size)]
+
+        # 初始化子单元矩阵来标记brick和iron
+        sub_maze = [[[0 for _ in range(2)] for _ in range(maze_size*2)] for _ in range(maze_size*2)]
+
+        # 标记brick和iron在子单元中的位置
+        def mark_sub_maze(group, value):
+            for item in group:
+                top_left_x = item.rect.left // subcell_size
+                top_left_y = item.rect.top // subcell_size
+                bottom_right_x = (item.rect.right - 1) // subcell_size
+                bottom_right_y = (item.rect.bottom - 1) // subcell_size
+                for y in range(top_left_y, bottom_right_y + 1):
+                    for x in range(top_left_x, bottom_right_x + 1):
+                        sub_maze[y][x] = value
+
+        mark_sub_maze(self.back_ground.brick_group, 1)
+        mark_sub_maze(self.back_ground.iron_group, 1)
+
+        # 将子单元矩阵的信息合并到迷宫矩阵中
+        for y in range(maze_size):
+            for x in range(maze_size):
+                if sub_maze[y*2][x*2] and sub_maze[y*2+1][x*2] and sub_maze[y*2][x*2+1] and sub_maze[y*2+1][x*2+1]:
+                    maze[y][x] = 1
+
+        # 确定坦克的位置
+        def tank_position(tank):
+            x = tank.rect.left // cell_size
+            y = tank.rect.top // cell_size
+            return x, y
+
+        # 确定起点和终点
+        start_points = [tank_position(enemy) for enemy in self.enemy_tank_group]
+        end_points = [tank_position(player) for player in self.player_tank_group]
+
+        return maze, start_points, end_points
+
+
+    
+    def one_tank_bfs(self, maze, begin, end):
+        MAX_VALUE = 0x7fffffff
+        n, m = len(maze), len(maze[0])
+        dist = [[MAX_VALUE for _ in range(m)] for _ in range(n)]
+        pre = [[None for _ in range(m)] for _ in range(n)]  # 当前点的上一个点,用于输出路径轨迹
+
+        dx = [1, 0, -1, 0]  # 四个方位
+        dy = [0, 1, 0, -1]
+        sx, sy = begin.x, begin.y
+        gx, gy = end.x, end.y
+
+        dist[sx][sy] = 0
+        queue = deque()
+        queue.append(begin)
+
+        while queue:
+            curr = queue.popleft()
+            find = False
+            for i in range(4):
+                nx, ny = curr.x + dx[i], curr.y + dy[i]
+                if 0 <= nx < n and 0 <= ny < m and maze[ny][nx] != 1 and dist[nx][ny] == MAX_VALUE:
+                    dist[nx][ny] = dist[curr.x][curr.y] + 1
+                    pre[nx][ny] = curr
+                    queue.append(Point(nx, ny))
+                    if nx == gx and ny == gy:
+                        find = True
+                        break
+            if find:
+                while queue:
+                    curr = queue.popleft()
+
+                stack = []
+                curr = begin  
+                while curr != end:  
+                    stack.append(curr)  
+                    curr = pre[curr.x][curr.y]  
+
+                stack.append(end)  
+
+                while stack:
+                    point = stack.pop()  
+                    if pre[point.x][point.y] is not None:
+                        direction = point.direction_to(pre[point.x][point.y])   # direction中存的是"up""down""right""left"中的一个值
+                        enemy_tank.direction = direction  # 移动坦克
+                        enemy_tank.move(
+                            self.all_tank_group,
+                            self.back_ground.brick_group,
+                            self.back_ground.iron_group,
+                        )
+
+        
+    def total_bfs(self):
+        maze, start_points, end_points = self.create_bfs_maze()
+        # 双人模式
+        first_player_tank = end_points[:1]  
+        second_player_tank = end_points[1:]
+
+        first_enemy_tank = start_points[:2]  
+        second_enemy_tank = start_points[2:] 
+
+        for end in first_player_tank:
+            for begin in first_enemy_tank:
+                self.one_tank_bfs(maze, begin, end)
+
+
+        for end in second_player_tank:
+            for begin in second_enemy_tank:
+                self.one_tank_bfs(maze, begin, end)
+
 
     def run(self):
         while not self.game_over:
