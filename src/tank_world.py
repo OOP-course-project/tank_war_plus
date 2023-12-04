@@ -96,6 +96,42 @@ class Tank_world:
         self.switch_R1_R2_image = True
         self.home_survive = True
 
+    def run(self):
+        while not self.game_over:
+            self.current_time = pygame.time.get_ticks()
+            self.handle_events()
+            # update the state of player tank
+            self.player_tank_group.update(self.screen)
+            self.enemy_tank_group.update()
+
+            for enemy_tank in self.enemy_tank_group:
+                if enemy_tank.slow_down:
+                    if self.current_time - enemy_tank.slow_down_timer >= 5000:
+                        enemy_tank.slow_down = False
+            if len(self.player_tank_group) == 0:
+                self.game_over = True
+
+            self.control(self.current_time)
+            self.draw(self.current_time)
+
+            self.delay -= 1
+
+            if not self.delay:
+                self.delay = 100
+
+            pygame.display.flip()
+            self.clock.tick(60)
+            if self.game_over:
+                while True:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            sys.exit()
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_SPACE:
+                                self.__init__(self.screen, self.double_players)
+                                self.run()
+
     def tank_moving(
         self,
         player_tank,
@@ -225,42 +261,6 @@ class Tank_world:
             self.game_over = True
 
         self.draw(self.current_time)
-
-    def run(self):
-        while not self.game_over:
-            self.current_time = pygame.time.get_ticks()
-            self.handle_events()
-            # update the state of player tank
-            self.player_tank_group.update(self.screen)
-            self.enemy_tank_group.update()
-
-            for enemy_tank in self.enemy_tank_group:
-                if enemy_tank.slow_down:
-                    if self.current_time - enemy_tank.slow_down_timer >= 5000:
-                        enemy_tank.slow_down = False
-            if len(self.player_tank_group) == 0:
-                self.game_over = True
-
-            self.control(self.current_time)
-            self.draw(self.current_time)
-
-            self.delay -= 1
-
-            if not self.delay:
-                self.delay = 100
-
-            pygame.display.flip()
-            self.clock.tick(60)
-            if self.game_over:
-                while True:
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            pygame.quit()
-                            sys.exit()
-                        if event.type == pygame.KEYDOWN:
-                            if event.key == pygame.K_SPACE:
-                                self.__init__(self.screen, self.double_players)
-                                self.run()
 
     def control(self, current_time):
         # player 1 control
