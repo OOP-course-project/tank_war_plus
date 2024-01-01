@@ -2,6 +2,8 @@ import pygame
 import bullet
 import random
 
+random.seed(1)
+
 tank_T1_0 = "../image/tank_T1_0.png"
 tank_T1_1 = "../image/tank_T1_1.png"
 tank_T1_2 = "../image/tank_T1_2.png"
@@ -48,6 +50,8 @@ class Player_tank(pygame.sprite.Sprite):
         self.max_life = 3
         self.health_bar_length = 48
         self.health_bar_color = (255, 0, 0, 255)
+
+        self.moving1 = 0
 
     def draw_health_bar(self, screen):
         health_bar_width = int((self.life / self.max_life) * self.health_bar_length)
@@ -135,9 +139,13 @@ class Player_tank(pygame.sprite.Sprite):
 
 
 class Enemy_tank(pygame.sprite.Sprite):
+
+    tank_id = 0
+
     def __init__(self, x=None, kind=None) -> None:
         super().__init__()
-
+        Enemy_tank.tank_id = Enemy_tank.tank_id + 1
+        self.tank_id = Enemy_tank.tank_id
         self.flash = False
         self.times = 90
         self.kind = kind
@@ -195,6 +203,8 @@ class Enemy_tank(pygame.sprite.Sprite):
             self.original_speed = 5
         if self.kind == 3:
             self.life = 3
+        
+        self.enemy_could_move = True
 
     def shoot(self):
         self.bullet.life = True
@@ -254,6 +264,24 @@ class Enemy_tank(pygame.sprite.Sprite):
                 -self.direction_dic[self.direction][1],
             )
             self.direction = random.choice(["up", "down", "left", "right"])
+
+    def move_sync(self, direction, left, top):
+        self.direction = direction
+        self.rect.left = left
+        self.rect.top = top
+
+        if self.direction == "up":
+            self.tank_R0 = self.tank.subsurface((0, 0), (48, 48))
+            self.tank_R1 = self.tank.subsurface((48, 0), (48, 48))
+        elif self.direction == "down":
+            self.tank_R0 = self.tank.subsurface((0, 48), (48, 48))
+            self.tank_R1 = self.tank.subsurface((48, 48), (48, 48))
+        elif self.direction == "left":
+            self.tank_R0 = self.tank.subsurface((0, 96), (48, 48))
+            self.tank_R1 = self.tank.subsurface((48, 96), (48, 48))
+        elif self.direction == "right":
+            self.tank_R0 = self.tank.subsurface((0, 144), (48, 48))
+            self.tank_R1 = self.tank.subsurface((48, 144), (48, 48))
 
     def update(self):
         if self.life <= 0:
