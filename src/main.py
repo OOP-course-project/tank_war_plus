@@ -5,28 +5,42 @@ import wall
 import tank
 import food
 import game_mode
+from game_global import g
 
+from client import Client
+import socket
 
-def main():
+IP_ADDR = '192.168.43.229' # 服务器IP地址
+PORT = 8888 # 服务器端口
+
+def main(argv):
     pygame.init()
     pygame.mixer.init()
     resolution = 630, 630
     screen = pygame.display.set_mode(resolution)
     pygame.display.set_caption("Tank War")
 
-    game_mode_selection = "single"
+    # 游戏连接到服务器
+    s = socket.socket()
+    s.connect((IP_ADDR, PORT))
+    client = Client(s, screen)
 
-    print("game_mode_selection:", game_mode_selection)
-    if game_mode_selection == "double":
-        game_mode.game_mode(screen, double_players=True)
+    # 客户端登录
+    client.send({"protocol":"cli_login", "role_id":argv[1]})
+    game_mode.client = client
 
-    if game_mode_selection == "single":
-        game_mode.game_mode(screen)
+    print('等待服务器响应...')
+    while not g.player:
+        pass
+    print('连接服务器成功')
+
+    # 准备开始游戏
+    game_mode.game_mode(screen)
 
 
 if __name__ == "__main__":
     try:
-        main()
+        main(sys.argv)
     except SystemExit:
         pass
     except:
