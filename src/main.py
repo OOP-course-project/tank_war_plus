@@ -7,12 +7,10 @@ import food
 from tank_world import Tank_world
 from utilise import *
 
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-
 
 def main():
     screen = init_pygame((630, 630))
+    pygame.display.set_caption("Tank War Plus")
     background = init_ui_background()
 
     while True:
