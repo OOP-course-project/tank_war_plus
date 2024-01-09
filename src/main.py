@@ -5,23 +5,24 @@ import wall
 import tank
 import food
 from tank_world import Tank_world
+from utilise import *
+
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 
 
 def main():
-    pygame.init()
-    pygame.mixer.init()
-    screen = pygame.display.set_mode((630, 630))
-    tw1 = Tank_world(screen, double_players=False)
-    tw2 = Tank_world(screen, double_players=True)
-
+    screen = init_pygame((630, 630))
+    background = init_ui_background()
     game_mode_selection = "single"
-
     print("game_mode_selection:", game_mode_selection)
-    if game_mode_selection == "double":
-        tw2.run()
 
     if game_mode_selection == "single":
-        tw1.run()
+        tw = Tank_world(screen, background, game_mode_selection)
+    elif game_mode_selection == "double":
+        tw = Tank_world(screen, background, game_mode_selection)
+
+    tw.run()
 
 
 if __name__ == "__main__":
