@@ -15,10 +15,16 @@ class Slider:
 
     def draw(self):
         # 绘制滑块轨道
-        pygame.draw.line(self.screen, self.color_line, (50, 100), (550, 100), 5)
+        pygame.draw.line(
+            self.screen,
+            self.color_line,
+            (50, self.position[1]),
+            (550, self.position[1]),
+            5,
+        )
         # 绘制滑块按钮
         pygame.draw.circle(
-            self.screen, self.color_button, (self.position, 100), self.button_radius
+            self.screen, self.color_button, self.position, self.button_radius
         )
 
     def update_position(self, new_position):

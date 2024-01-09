@@ -18,10 +18,10 @@ class Tank_world:
         self.background_image = pygame.image.load(
             r"../image/background.png"
         ).convert_alpha()
-        self.home_image = pygame.image.load(r"../image/home.png").convert_alpha()
-        self.home_destroyed_image = pygame.image.load(
-            r"../image/home_destroyed.png"
-        ).convert_alpha()
+        # self.home_image = pygame.image.load(r"../image/home.png").convert_alpha()
+        # self.home_destroyed_image = pygame.image.load(
+        #     r"../image/home_destroyed.png"
+        # ).convert_alpha()
         self.bang_sound = pygame.mixer.Sound(r"../music/bang.wav")
         self.fire_sound = pygame.mixer.Sound(r"../music/Gunfire.wav")
         self.start_sound = pygame.mixer.Sound(r"../music/start.wav")
@@ -34,7 +34,7 @@ class Tank_world:
         self.enemy_tank_group = pygame.sprite.Group()
         self.enemy_bullet_group = pygame.sprite.Group()
 
-        self.back_ground = wall.Map()
+        self.back_ground = wall.Map("../maps/initial_points.json")
 
         # position for reinforcement learning observation
         self.brick_pos = [[0 for i in range(26)] for j in range(26)]
@@ -94,7 +94,7 @@ class Tank_world:
             self.last_player_shot_time_T2 = 0
         self.enemy_could_move = True
         self.switch_R1_R2_image = True
-        self.home_survive = True
+        # self.home_survive = True
 
     def run(self):
         while not self.game_over:
@@ -325,11 +325,11 @@ class Tank_world:
         # draw irons
         for iron in self.back_ground.iron_group:
             self.screen.blit(iron.image, iron.rect)
-        # draw home
-        if self.home_survive:
-            self.screen.blit(self.home_image, (3 + 24 * 12, 3 + 24 * 24))
-        else:
-            self.screen.blit(self.home_destroyed_image, (3 + 24 * 12, 3 + 24 * 24))
+        # # draw home
+        # if self.home_survive:
+        #     self.screen.blit(self.home_image, (3 + 24 * 12, 3 + 24 * 24))
+        # else:
+        #     self.screen.blit(self.home_destroyed_image, (3 + 24 * 12, 3 + 24 * 24))
 
         if not (self.delay % 5):
             self.switch_R1_R2_image = not self.switch_R1_R2_image
@@ -634,6 +634,7 @@ class Tank_world:
                         enemy_tank.bullet, self.back_ground.brick_group, True, None
                     ):
                         enemy_tank.bullet.life = False
+
                     # if bullet hit iron
                     if enemy_tank.bullet.strong:
                         if pygame.sprite.spritecollide(
