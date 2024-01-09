@@ -76,8 +76,20 @@ class Freeze_bullet(Normal_bullet):
         ).convert_alpha()
 
         self.bullet_up = pygame.transform.scale(self.bullet_up, (12, 12))
-        self.bullet_left = pygame.transform.rotate(self.bullet_up, 90)
+        self.bullet_lefts = pygame.transform.rotate(self.bullet_up, 90)
         self.bullet_down = pygame.transform.rotate(self.bullet_up, 180)
         self.bullet_right = pygame.transform.rotate(self.bullet_up, 270)
 
         self.speed = 6
+
+class user_defined_normal_bullet(Normal_bullet):
+    def __init__(self):
+        super().__init__()
+
+        self.bullet_up = pygame.image.load("../image/user_bullet_up.png").convert_alpha()
+        self.bullet_left = pygame.image.load("../image/user_bullet_left.png").convert_alpha()
+        self.bullet_down = pygame.image.load("../image/user_bullet_down.png").convert_alpha()
+        self.bullet_right = pygame.image.load("../image/user_bullet_right.png").convert_alpha()
+
+        self.speed = 6
+
