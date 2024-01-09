@@ -2,6 +2,30 @@ import pygame
 import random
 
 
+class Slider:
+    def __init__(
+        self, screen, length, initial_position, color_line, color_button, button_radius
+    ):
+        self.screen = screen
+        self.length = length
+        self.position = initial_position
+        self.color_line = color_line
+        self.color_button = color_button
+        self.button_radius = button_radius
+
+    def draw(self):
+        # 绘制滑块轨道
+        pygame.draw.line(self.screen, self.color_line, (50, 100), (550, 100), 5)
+        # 绘制滑块按钮
+        pygame.draw.circle(
+            self.screen, self.color_button, (self.position, 100), self.button_radius
+        )
+
+    def update_position(self, new_position):
+        # 更新滑块按钮位置
+        self.position = new_position
+
+
 def change_image(image, direction):
     if direction == "up":
         return image
@@ -48,5 +72,6 @@ def init_pygame(resolution):
 def init_ui_background():
     single_game_girl = pygame.image.load("../image/single_game_girl.png")
     double_game_girls = pygame.image.load("../image/double_game_girls.png")
-    background = random.choice([single_game_girl, double_game_girls])
+    backgrounds = [single_game_girl, double_game_girls]
+    background = random.choice(backgrounds)
     return background
