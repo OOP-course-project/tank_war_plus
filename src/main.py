@@ -4,24 +4,24 @@ import traceback
 import wall
 import tank
 import food
-import game_mode
+from tank_world import Tank_world
 
 
 def main():
     pygame.init()
     pygame.mixer.init()
-    resolution = 630, 630
-    screen = pygame.display.set_mode(resolution)
-    pygame.display.set_caption("Tank War")
+    screen = pygame.display.set_mode((630, 630))
+    tw1 = Tank_world(screen, double_players=False)
+    tw2 = Tank_world(screen, double_players=True)
 
     game_mode_selection = "single"
 
     print("game_mode_selection:", game_mode_selection)
     if game_mode_selection == "double":
-        game_mode.game_mode(screen, double_players=True)
+        tw2.run()
 
     if game_mode_selection == "single":
-        game_mode.game_mode(screen)
+        tw1.run()
 
 
 if __name__ == "__main__":
