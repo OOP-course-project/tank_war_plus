@@ -10,13 +10,13 @@ from game_global import g
 
 random.seed(1)
 
-client = None # 客户端Socket
-globalV = {} # 全局通用变量
-player_tanks_list = [] # 玩家坦克列表
-MAX_PLAYER_NUM = 2 # 最大玩家数量
+client = None  # 客户端Socket
+globalV = {}  # 全局通用变量
+player_tanks_list = []  # 玩家坦克列表
+MAX_PLAYER_NUM = 2  # 最大玩家数量
+
 
 def game_mode(screen, double_players: bool = False):
-
     globalV.clear()
     player_tanks_list.clear()
     for i in range(MAX_PLAYER_NUM):
@@ -36,22 +36,21 @@ def game_mode(screen, double_players: bool = False):
     bang_sound.set_volume(1)
     start_sound.play()
     all_tank_group = pygame.sprite.Group()
-    globalV['all_tank_group'] = all_tank_group
+    globalV["all_tank_group"] = all_tank_group
     player_tank_group = pygame.sprite.Group()
-    globalV['player_tank_group'] = player_tank_group
+    globalV["player_tank_group"] = player_tank_group
     enemy_tank_group = pygame.sprite.Group()
-    globalV['enemy_tank_group'] = enemy_tank_group
+    globalV["enemy_tank_group"] = enemy_tank_group
     enemy_bullet_group = pygame.sprite.Group()
-    globalV['enemy_bullet_group'] = enemy_bullet_group
+    globalV["enemy_bullet_group"] = enemy_bullet_group
 
     back_ground = wall.Map()
-    globalV['back_ground'] = back_ground
+    globalV["back_ground"] = back_ground
     foods = food.Food()
 
     font = pygame.font.Font(None, 36)
 
     player_tank1 = None
-
 
     for i in range(MAX_PLAYER_NUM):
         player_tanks_list[i] = tank.Player_tank(i + 1)
@@ -59,7 +58,7 @@ def game_mode(screen, double_players: bool = False):
         player_tank_group.add(player_tanks_list[i])
         if i + 1 == g.player.role_id:
             player_tank1 = player_tanks_list[i]
-            globalV['player_tank1'] = player_tank1
+            globalV["player_tank1"] = player_tank1
 
     for i in range(1, 4):
         enemy = tank.Enemy_tank(i, i)
@@ -85,9 +84,8 @@ def game_mode(screen, double_players: bool = False):
     NOTMOVEEVENT = pygame.constants.USEREVENT + 3
     pygame.time.set_timer(NOTMOVEEVENT, 8000)
 
-
     delay = 100
-    
+
     score1 = 0
     running_T1 = True
     last_player_shot_time_T1 = 0
@@ -97,7 +95,6 @@ def game_mode(screen, double_players: bool = False):
     clock = pygame.time.Clock()
 
     while True:
-
         current_time = pygame.time.get_ticks()
 
         if not g.game_start:
@@ -134,8 +131,15 @@ def game_mode(screen, double_players: bool = False):
                     if g.player.role_id == 1:
                         # 由1号玩家告知服务端有新的敌人出现
                         enemy = tank.Enemy_tank()
-                        if not pygame.sprite.spritecollide(enemy, all_tank_group, False, None):
-                            client.send({"protocol":"enemy_birth", "tank_id": tank.Enemy_tank.tank_id})
+                        if not pygame.sprite.spritecollide(
+                            enemy, all_tank_group, False, None
+                        ):
+                            client.send(
+                                {
+                                    "protocol": "enemy_birth",
+                                    "tank_id": tank.Enemy_tank.tank_id,
+                                }
+                            )
                     # enemy = tank.Enemy_tank()
                     # if pygame.sprite.spritecollide(enemy, all_tank_group, False, None):
                     #     break
@@ -143,10 +147,12 @@ def game_mode(screen, double_players: bool = False):
                     # enemy_tank_group.add(enemy)
 
             if event.type == pygame.KEYDOWN:
-                if (event.key == pygame.K_c and pygame.KMOD_CTRL) or (event.key == pygame.K_ESCAPE):
+                if (event.key == pygame.K_c and pygame.KMOD_CTRL) or (
+                    event.key == pygame.K_ESCAPE
+                ):
                     pygame.quit()
                     sys.exit()
-            
+
         # update the status of player tank
         player_tank_group.update(screen)
         enemy_tank_group.update()
@@ -160,7 +166,7 @@ def game_mode(screen, double_players: bool = False):
         if len(player_tank_group) <= 0 or not g.game_start:
             if enemy_tanks_info:
                 # 告知服务端游戏结束
-                client.send({"protocol":"game_over"})
+                client.send({"protocol": "game_over"})
 
         # player 1 control
         if player_tank1.life > 0:
@@ -178,13 +184,45 @@ def game_mode(screen, double_players: bool = False):
 
             # 向服务端告知该玩家的操作（如玩家操作上下左右移动）
             if key_pressed[pygame.K_w]:
-                client.send({"protocol":"cli_move","dir": "up","x":player_tank1.rect.x,"y":player_tank1.rect.y, 't': current_time})
+                client.send(
+                    {
+                        "protocol": "cli_move",
+                        "dir": "up",
+                        "x": player_tank1.rect.x,
+                        "y": player_tank1.rect.y,
+                        "t": current_time,
+                    }
+                )
             elif key_pressed[pygame.K_s]:
-                client.send({"protocol":"cli_move","dir": "down","x":player_tank1.rect.x,"y":player_tank1.rect.y, 't': current_time})
+                client.send(
+                    {
+                        "protocol": "cli_move",
+                        "dir": "down",
+                        "x": player_tank1.rect.x,
+                        "y": player_tank1.rect.y,
+                        "t": current_time,
+                    }
+                )
             elif key_pressed[pygame.K_a]:
-                client.send({"protocol":"cli_move","dir": "left","x":player_tank1.rect.x,"y":player_tank1.rect.y, 't': current_time})
+                client.send(
+                    {
+                        "protocol": "cli_move",
+                        "dir": "left",
+                        "x": player_tank1.rect.x,
+                        "y": player_tank1.rect.y,
+                        "t": current_time,
+                    }
+                )
             elif key_pressed[pygame.K_d]:
-                client.send({"protocol":"cli_move","dir": "right","x":player_tank1.rect.x,"y":player_tank1.rect.y, 't': current_time})
+                client.send(
+                    {
+                        "protocol": "cli_move",
+                        "dir": "right",
+                        "x": player_tank1.rect.x,
+                        "y": player_tank1.rect.y,
+                        "t": current_time,
+                    }
+                )
             if key_pressed[pygame.K_j]:
                 if current_time - last_player_shot_time_T1 >= 500:
                     fire_sound.play()
@@ -193,11 +231,16 @@ def game_mode(screen, double_players: bool = False):
                     last_player_shot_time_T1 = current_time
 
                     # 告知服务器该玩家坦克发生射击动作
-                    client.send({"protocol":"player_shoot"})
+                    client.send({"protocol": "player_shoot"})
 
-
-        client.send({"protocol":"player_pos", "dir": player_tank1.direction, "left":player_tank1.rect.left, "top":player_tank1.rect.top})
-
+        client.send(
+            {
+                "protocol": "player_pos",
+                "dir": player_tank1.direction,
+                "left": player_tank1.rect.left,
+                "top": player_tank1.rect.top,
+            }
+        )
 
         # draw background
         screen.blit(background_image, (0, 0))
@@ -217,7 +260,7 @@ def game_mode(screen, double_players: bool = False):
         #     switch_R1_R2_image = not switch_R1_R2_image
 
         # show the score
-        
+
         score_text1 = font.render(f"Your Score: {score1}", True, (255, 255, 255))
         screen.blit(score_text1, (10, 10))
 
@@ -235,74 +278,12 @@ def game_mode(screen, double_players: bool = False):
                     player_tanks_list[i], back_ground.iron_group, False, None
                 ):
                     player_tanks_list[i].moving1 = 0
-        # if player_tank1.life > 0:
-        #     if switch_R1_R2_image and running_T1:
-        #         screen.blit(
-        #             player_tank1.tank_R1,
-        #             (player_tank1.rect.left, player_tank1.rect.top),
-        #         )
-        #         running_T1 = False
-        #     else:
-        #         screen.blit(
-        #             player_tank1.tank_R0,
-        #             (player_tank1.rect.left, player_tank1.rect.top),
-        #         )
-        #     if pygame.sprite.spritecollide(
-        #         player_tank1, back_ground.brick_group, False, None
-        #     ) or pygame.sprite.spritecollide(
-        #         player_tank1, back_ground.iron_group, False, None
-        #     ):
-        #         player_tank1.moving1 = 0
-        # if double_players:
-        #     if player_tank2.life > 0:
-        #         if switch_R1_R2_image and running_T2:
-        #             screen.blit(
-        #                 player_tank2.tank_R0,
-        #                 (player_tank2.rect.left, player_tank2.rect.top),
-        #             )
-        #             running_T2 = False
-        #         else:
-        #             screen.blit(
-        #                 player_tank2.tank_R1,
-        #                 (player_tank2.rect.left, player_tank2.rect.top),
-        #             )
 
-        #     if double_players:
-        #         if pygame.sprite.spritecollide(
-        #             player_tank2, back_ground.brick_group, False, None
-        #         ) or pygame.sprite.spritecollide(
-        #             player_tank2, back_ground.iron_group, False, None
-        #         ):
-        #             moving2 = 0
         player_tank_group.update(screen)
 
         enemy_tanks_info = {}
         for enemy_tank in enemy_tank_group:
             if enemy_tank.flash:
-                # if switch_R1_R2_image:
-                #     screen.blit(
-                #         enemy_tank.tank_R0, (enemy_tank.rect.left, enemy_tank.rect.top)
-                #     )
-                #     if enemy_could_move:
-                #         all_tank_group.remove(enemy_tank)
-                #         enemy_tank.move(
-                #             all_tank_group,
-                #             back_ground.brick_group,
-                #             back_ground.iron_group,
-                #         )
-                #         all_tank_group.add(enemy_tank)
-                # else:
-                #     screen.blit(
-                #         enemy_tank.tank_R1, (enemy_tank.rect.left, enemy_tank.rect.top)
-                #     )
-                #     if enemy_could_move:
-                #         all_tank_group.remove(enemy_tank)
-                #         enemy_tank.move(
-                #             all_tank_group,
-                #             back_ground.brick_group,
-                #             back_ground.iron_group,
-                #         )
-                #         all_tank_group.add(enemy_tank)
                 screen.blit(
                     enemy_tank.tank_R1, (enemy_tank.rect.left, enemy_tank.rect.top)
                 )
@@ -315,8 +296,12 @@ def game_mode(screen, double_players: bool = False):
                         back_ground.iron_group,
                     )
                     all_tank_group.add(enemy_tank)
-                    enemy_tanks_info[enemy_tank.tank_id] = [enemy_tank.direction, enemy_tank.rect.left, enemy_tank.rect.top]
-                
+                    enemy_tanks_info[enemy_tank.tank_id] = [
+                        enemy_tank.direction,
+                        enemy_tank.rect.left,
+                        enemy_tank.rect.top,
+                    ]
+
             else:
                 # show the enemy tank appearance
                 if enemy_tank.times > 0:
@@ -341,11 +326,15 @@ def game_mode(screen, double_players: bool = False):
                         screen.blit(appearance[0], (3 + enemy_tank.x * 12 * 24, 3))
                 if enemy_tank.times == 0:
                     if g.player.role_id == 1:
-                        enemy_tanks_info[enemy_tank.tank_id] = [enemy_tank.direction, enemy_tank.rect.left, enemy_tank.rect.top]
+                        enemy_tanks_info[enemy_tank.tank_id] = [
+                            enemy_tank.direction,
+                            enemy_tank.rect.left,
+                            enemy_tank.rect.top,
+                        ]
                     enemy_tank.flash = True
         if g.player.role_id == 1 and enemy_tanks_info:
             # 告知服务端敌人发生移动，仅由1号玩家来告知服务端
-            client.send({"protocol":"enemy_move","info": enemy_tanks_info})
+            client.send({"protocol": "enemy_move", "info": enemy_tanks_info})
 
         # draw player 1 bullet
 
@@ -413,7 +402,6 @@ def game_mode(screen, double_players: bool = False):
                             3 + 12 * 24,
                             3 + 24 * 24,
                         )
-        
 
         # draw enemy bullet
         for enemy_tank in enemy_tank_group:
@@ -424,12 +412,8 @@ def game_mode(screen, double_players: bool = False):
                     and enemy_tank.bullet_not_cooling
                     and enemy_could_move
                 ):
-                    # enemy_bullet_group.remove(enemy_tank.bullet)
-                    # enemy_tank.shoot()
-                    # enemy_bullet_group.add(enemy_tank.bullet)
-                    # enemy_tank.bullet_not_cooling = False
                     # 告知服务端敌人坦克发生射击动作，仅由1号玩家来告知服务端
-                    client.send({"protocol":"enemy_shoot"})
+                    client.send({"protocol": "enemy_shoot"})
                 # if the sound is playing, then draw bullet
             if enemy_tank.flash:
                 if enemy_tank.bullet.life:
@@ -441,15 +425,21 @@ def game_mode(screen, double_players: bool = False):
 
                     for i in range(MAX_PLAYER_NUM):
                         if (
-                            pygame.sprite.collide_rect(enemy_tank.bullet, player_tanks_list[i])
+                            pygame.sprite.collide_rect(
+                                enemy_tank.bullet, player_tanks_list[i]
+                            )
                             and player_tanks_list[i] in player_tank_group
                         ):
                             # 告知服务端玩家受到攻击，仅由1号玩家来告知服务端
                             if g.player.role_id == 1:
-                                client.send({"protocol":"player_injured", "role_id": i + 1})
+                                client.send(
+                                    {"protocol": "player_injured", "role_id": i + 1}
+                                )
                             # 若血量低于 0 ，则告知服务端该玩家已死亡
                             if player_tanks_list[i].life <= 1:
-                                client.send({"protocol":"player_die", "role_id": i + 1})
+                                client.send(
+                                    {"protocol": "player_die", "role_id": i + 1}
+                                )
                             # player_tanks_list[i].life -= 1
                             enemy_tank.bullet.life = False
                             bang_sound.play()
@@ -482,9 +472,7 @@ def game_mode(screen, double_players: bool = False):
         screen.fill((0, 0, 0))
         text = font.render("Game Over!", True, (255, 255, 255))
         text_rect = text.get_rect()
-        score1_text = font.render(
-            "Your Score: " + str(score1), True, (255, 255, 255)
-        )
+        score1_text = font.render("Your Score: " + str(score1), True, (255, 255, 255))
         if not double_players:
             text_rect.center = (
                 screen.get_rect().centerx,
@@ -512,7 +500,7 @@ def game_mode(screen, double_players: bool = False):
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE and g.player.role_id == 1:
                         # 由1号玩家告知服务端游戏开始
-                        client.send({"protocol":"game_start"})
+                        client.send({"protocol": "game_start"})
                         game_mode(screen, double_players=double_players)
             if g.round_start:
                 game_mode(screen, double_players=double_players)
