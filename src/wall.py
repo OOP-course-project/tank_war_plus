@@ -47,5 +47,22 @@ class Map:
             self.iron_group.add(self.iron)
 
 
+class home(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.image.load(r"../image/home.png").convert_alpha()
+        self.home_destroyed_image = pygame.image.load(
+            r"../image/home_destroyed.png"
+        ).convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.left, self.rect.top = 3 + 12 * 24, 3 + 24 * 24
+        self.life = True
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+        if not self.life:
+            screen.blit(self.home_destroyed_image, self.rect)
+
+
 if __name__ == "__main__":
     map = Map("../maps/initial_points.json")
