@@ -13,13 +13,6 @@ def change_image(image, direction):
         return pygame.transform.rotate(image, 270)
 
 
-def init_pygame(resolution):
-    pygame.init()
-    pygame.mixer.init()
-    screen = pygame.display.set_mode(resolution)
-    return screen
-
-
 def init_ui_background():
     single_game_girl = pygame.image.load("../image/single_game_girl.png")
     double_game_girls = pygame.image.load("../image/double_game_girls.png")

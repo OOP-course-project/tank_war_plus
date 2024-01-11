@@ -5,19 +5,30 @@ import wall
 import tank
 import food
 import ui_class
+import map_designer
 from tank_world import Tank_world
 from utilise import *
 
 
+pygame.init()
+pygame.mixer.init()
+
 return_button_image = pygame.image.load("../image/return.png")
 return_button_image = pygame.transform.scale(return_button_image, (24, 24))
-return_button_rect = return_button_image.get_rect(topleft=(10, 10))
-screen = init_pygame((630, 630))
+enter_design_button_image = pygame.image.load("../image/enter_map_designer.png")
+enter_printer_button_image = pygame.image.load("../image/enter_bullet_printer.png")
+setting_return_button_rect = return_button_image.get_rect(topleft=(10, 10))
+enter_designer_button_rect = enter_design_button_image.get_rect(topleft=(165, 500))
+enter_printer_button_rect = enter_printer_button_image.get_rect(topleft=(165, 350))
+
+
 button_width = 200
 button_height = 100
 WHITE = (255, 255, 255)
 
+screen = pygame.display.set_mode((630, 630))
 
+# 初始化ui组件
 music_volume_slider = ui_class.Slider(
     screen,
     length=500,
@@ -87,6 +98,7 @@ def main():
                 if single_game_button.click(event):
                     tw = Tank_world(screen, double_players=False)
                     tw.run()
+
                 elif double_game_button.click(event):
                     tw = Tank_world(screen, double_players=True)
                     tw.run()
@@ -97,14 +109,22 @@ def main():
                             if event.type == pygame.QUIT:
                                 pygame.quit()
                                 sys.exit()
-                            if (
-                                event.type == pygame.MOUSEBUTTONDOWN
-                                and event.button == 1
-                            ):
+                            if event.type == pygame.MOUSEBUTTONDOWN:
                                 mouse_pos = pygame.mouse.get_pos()
                                 # 判断是否点击了返回按钮
-                                if return_button_rect.collidepoint(mouse_pos):
+                                if setting_return_button_rect.collidepoint(mouse_pos):
                                     return_flag = False
+                                if enter_designer_button_rect.collidepoint(mouse_pos):
+                                    designer_screen = pygame.display.set_mode(
+                                        (800, 600)
+                                    )
+                                    designer = map_designer.Map_designer(
+                                        designer_screen
+                                    )
+                                    pygame.mouse.set_visible(False)
+                                    designer.run()
+                                    pygame.mouse.set_visible(True)
+                                    pygame.display.set_mode((630, 630))
 
                         mouse_x, mouse_y = pygame.mouse.get_pos()
                         # 检测鼠标点击事件
@@ -129,7 +149,14 @@ def main():
 
                         screen.fill((255, 255, 255))
                         music_volume_slider.draw()
-                        screen.blit(return_button_image, return_button_rect)
+
+                        screen.blit(return_button_image, setting_return_button_rect)
+                        screen.blit(
+                            enter_design_button_image, enter_designer_button_rect
+                        )
+                        screen.blit(
+                            enter_printer_button_image, enter_printer_button_rect
+                        )
                         pygame.display.flip()
 
 

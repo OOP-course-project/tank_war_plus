@@ -172,7 +172,7 @@ class Enemy_tank(pygame.sprite.Sprite):
         self.rect.left, self.rect.top = 3 + self.x * 12 * 24, 3 + 24 * 0
 
         self.speed = 3
-        self.original_speed = 3
+        self.original_speed = self.speed
         self.life = 2
         self.bullet_not_cooling = True
         self.bullet = bullet.Normal_bullet()
@@ -199,7 +199,6 @@ class Enemy_tank(pygame.sprite.Sprite):
     def shoot(self):
         self.bullet.life = True
         self.bullet.change_image(self.direction)
-        self.bullet.speed = 16
         self.bullet.strong = False
 
         if self.direction == "up":

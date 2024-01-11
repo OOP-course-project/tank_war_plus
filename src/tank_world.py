@@ -2,26 +2,43 @@ import pygame
 import sys
 import wall
 import tank
-import food
 import bullet
 import pygame
+import pygame_gui
 import numpy as np
+from utilise import *
 
 
 class Tank_world:
-    def __init__(self, screen, double_players=False) -> None:
+    def __init__(self, screen: pygame.Surface, double_players=False) -> None:
         self.screen = screen
         self.double_players = double_players
         self.clock = pygame.time.Clock()
         self.game_over = False
+        self.exit_confirm = False
+
+        # init gui
+        self.gui_manager = pygame_gui.UIManager(
+            (screen.get_width(), screen.get_height())
+        )
+
+        self.exit_popup = pygame_gui.windows.UIConfirmationDialog(
+            rect=pygame.Rect((0, 0), (100, 100)),
+            manager=self.gui_manager,
+            window_title="Exit Confirmation",
+            action_long_desc="Are you sure you want to exit?",
+            action_short_name="exit",
+            blocking=True,
+        )
+
+        self.exit_draw = False
+        self.time_delta = self.clock.tick(60) / 1000
 
         self.background_image = pygame.image.load(
             r"../image/background.png"
         ).convert_alpha()
-        # self.home_image = pygame.image.load(r"../image/home.png").convert_alpha()
-        # self.home_destroyed_image = pygame.image.load(
-        #     r"../image/home_destroyed.png"
-        # ).convert_alpha()
+
+        self.home = wall.home()
         self.bang_sound = pygame.mixer.Sound(r"../music/bang.wav")
         self.fire_sound = pygame.mixer.Sound(r"../music/Gunfire.wav")
         self.start_sound = pygame.mixer.Sound(r"../music/start.wav")
@@ -94,12 +111,12 @@ class Tank_world:
             self.last_player_shot_time_T2 = 0
         self.enemy_could_move = True
         self.switch_R1_R2_image = True
-        # self.home_survive = True
 
     def run(self):
-        while not self.game_over:
+        while not (self.game_over or self.exit_confirm):
             self.current_time = pygame.time.get_ticks()
             self.handle_events()
+            self.gui_manager.update(self.time_delta)
             # update the state of player tank
             self.player_tank_group.update(self.screen)
             self.enemy_tank_group.update()
@@ -108,21 +125,22 @@ class Tank_world:
                 if enemy_tank.slow_down:
                     if self.current_time - enemy_tank.slow_down_timer >= 5000:
                         enemy_tank.slow_down = False
-            if len(self.player_tank_group) == 0:
+            if len(self.player_tank_group) == 0 or self.home.life == False:
                 self.game_over = True
 
             self.control(self.current_time)
             self.draw(self.current_time)
+            self.draw_gui()
+            pygame.display.flip()
 
             self.delay -= 1
 
             if not self.delay:
                 self.delay = 100
 
-            pygame.display.flip()
             self.clock.tick(60)
             if self.game_over:
-                while True:
+                while self.game_over:
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
                             pygame.quit()
@@ -186,8 +204,9 @@ class Tank_world:
                 # player tank bullet cooling 0.5s
                 if self.current_time - self.last_player_shot_time_T1 >= 500:
                     self.player_tank1.bullet_not_cooling = True
-                if self.current_time - self.last_player_shot_time_T2 >= 500:
-                    self.player_tank2.bullet_not_cooling = True
+                if self.double_players:
+                    if self.current_time - self.last_player_shot_time_T2 >= 500:
+                        self.player_tank2.bullet_not_cooling = True
 
             if event.type == self.ENEMYBULLETNOTCOOLINGEVENT:
                 for enemy in self.enemy_tank_group:
@@ -210,6 +229,16 @@ class Tank_world:
                 if event.key == pygame.K_c and pygame.KMOD_CTRL:
                     pygame.quit()
                     sys.exit()
+
+            if event.dict == {}:
+                continue
+
+            self.gui_manager.process_events(event)
+
+            if event.type == pygame.USEREVENT:
+                if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
+                    if event.ui_element == self.exit_popup:
+                        self.exit_confirm = True
 
     def update(self):
         self.current_time = pygame.time.get_ticks()
@@ -263,8 +292,12 @@ class Tank_world:
         self.draw(self.current_time)
 
     def control(self, current_time):
-        # player 1 control
         key_pressed = pygame.key.get_pressed()
+
+        if key_pressed[pygame.K_ESCAPE]:
+            self.exit_draw = not self.exit_draw
+
+        # player 1 control
         if self.player_tank1.life > 0:
             if self.moving1:
                 self.moving1 -= 1
@@ -316,7 +349,14 @@ class Tank_world:
                 if key_pressed[pygame.K_KP0]:
                     self.tank_shoot(self.player_tank2)
 
+    def draw_gui(self):
+        # draw the exit popup
+        if self.exit_draw:
+            self.gui_manager.draw_ui(self.screen)
+
     def draw(self, current_time):
+        # draw the exit popup
+
         # draw the background
         self.screen.blit(self.background_image, (0, 0))
         # draw brick and iron
@@ -325,11 +365,8 @@ class Tank_world:
         # draw irons
         for iron in self.back_ground.iron_group:
             self.screen.blit(iron.image, iron.rect)
-        # # draw home
-        # if self.home_survive:
-        #     self.screen.blit(self.home_image, (3 + 24 * 12, 3 + 24 * 24))
-        # else:
-        #     self.screen.blit(self.home_destroyed_image, (3 + 24 * 12, 3 + 24 * 24))
+        # draw home
+        self.home.draw(self.screen)
 
         if not (self.delay % 5):
             self.switch_R1_R2_image = not self.switch_R1_R2_image
@@ -646,6 +683,11 @@ class Tank_world:
                             enemy_tank.bullet, self.back_ground.iron_group, False, None
                         ):
                             enemy_tank.bullet.life = False
+
+                    # if bullet hit home
+                    if pygame.sprite.collide_rect(enemy_tank.bullet, self.home):
+                        self.home.life = False
+                        enemy_tank.bullet.life = False
 
         if self.game_over:
             self.screen.fill((0, 0, 0))
