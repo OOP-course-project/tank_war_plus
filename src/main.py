@@ -97,6 +97,7 @@ button_list = [
 select_popup = ui_class.Popup(screen, "select player number", "Player 1", "Player 2")
 exit_signal = threading.Event()
 server_started = False
+open_BFS = False
 
 
 def draw(screen, popup_running=False):

@@ -36,9 +36,9 @@ def main():
         color = simpledialog.askstring(
             "Enter color", "Please enter a color value in the form #abcdef:"
         )
-        if color is None:
-            return
         try:
+            if color is None:
+                return
             if len(color) != 7 or not all(
                 c in "0123456789abcdefABCDEF" for c in color[1:]
             ):
@@ -77,10 +77,14 @@ def main():
         bullet_left.save("../image/user_bullet_left.png")
         bullet_right.save("../image/user_bullet_right.png")
 
+    def close_window():
+        window.destroy()
+
     tk.Button(window, text="Export Data", command=export_data).pack()
     tk.Button(
         window, text="Generate Bullet Pictures", command=generate_bullet_images
     ).pack()
+    window.protocol("WM_DELETE_WINDOW", close_window)
 
     # begin tkinter mainloop
     window.mainloop()

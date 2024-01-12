@@ -1,7 +1,14 @@
 import pygame
+from abc import ABC, abstractmethod
 
 
-class TextInputBox:
+class AbstractUIComponent(ABC):
+    @abstractmethod
+    def draw(self):
+        pass
+
+
+class TextInputBox(AbstractUIComponent):
     def __init__(self, screen, x, y, width, height, font_size=40):
         self.rect = pygame.Rect(x, y, width, height)
         self.screen = screen
@@ -32,7 +39,7 @@ class TextInputBox:
         self.screen.blit(text_surface, (self.rect.x + 5, self.rect.y + 5))
 
 
-class Slider:
+class Slider(AbstractUIComponent):
     def __init__(
         self, screen, length, initial_position, color_line, color_button, button_radius
     ):
@@ -63,7 +70,7 @@ class Slider:
 
 
 # 方形按钮类，可以实现导入背景图片
-class Button:
+class Button(AbstractUIComponent):
     def __init__(
         self,
         x,
@@ -187,7 +194,7 @@ class RoundedRectangleButton(Button):
 
 
 # 复选框类
-class Checkbox:
+class Checkbox(AbstractUIComponent):
     def __init__(
         self,
         x,
@@ -251,7 +258,7 @@ class Checkbox:
 
 
 # 下拉菜单
-class DropdownMenu:
+class DropdownMenu(AbstractUIComponent):
     def __init__(
         self,
         x,
@@ -331,8 +338,11 @@ class DropdownMenu:
                         self.is_open = False
                         break
 
+    def get_now_option(self):
+        return self.selected_option
 
-class Popup:
+
+class Popup(AbstractUIComponent):
     def __init__(
         self,
         screen,

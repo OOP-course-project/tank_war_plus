@@ -591,7 +591,7 @@ class Map_designer:
                     elif self.save_button.rect.collidepoint(mouse_pos):
                         # 保存地图
                         self.save_button.handle_click()
-                        self.game_map.save_map("map_data.json")
+                        self.game_map.save_map("../maps/self_made_map.json")
                         self.ui.show_message("Map saved")
                     elif self.screenshot_button.rect.collidepoint(mouse_pos):
                         # 截图
@@ -647,7 +647,7 @@ class Map_designer:
                     pygame.image.save(self.screen, "../image/screenshot.png")
                     self.ui.show_message("Screenshot saved")
                 elif event.key == pygame.K_SPACE:
-                    self.game_map.save_map("map_data.json")
+                    self.game_map.save_map("../maps/self_made_map.json")
                     self.ui.show_message("Map saved")
 
 

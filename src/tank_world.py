@@ -11,9 +11,14 @@ from utilise import *
 
 class Tank_world:
     def __init__(
-        self, screen: pygame.Surface, double_players=False, BFS_open=False
+        self,
+        screen: pygame.Surface,
+        map_path="../maps/initial_points.json",
+        double_players=False,
+        BFS_open=False,
     ) -> None:
         self.screen = screen
+        self.map_path = map_path
         self.double_players = double_players
         self.BFS_open = BFS_open
         self.clock = pygame.time.Clock()
@@ -53,7 +58,7 @@ class Tank_world:
         self.enemy_tank_group = pygame.sprite.Group()
         self.enemy_bullet_group = pygame.sprite.Group()
 
-        self.back_ground = wall.Map("../maps/initial_points.json")
+        self.back_ground = wall.Map(self.map_path)
 
         # position for reinforcement learning observation
         self.brick_pos = [[0 for i in range(26)] for j in range(26)]
@@ -861,5 +866,10 @@ if __name__ == "__main__":
     pygame.init()
     pygame.mixer.init()
     screen = pygame.display.set_mode((630, 630))
-    tw1 = Tank_world(screen, double_players=False, BFS_open=True)
+    tw1 = Tank_world(
+        screen,
+        map_path="../maps/self_made_map.json",
+        double_players=False,
+        BFS_open=True,
+    )
     tw1.run()
