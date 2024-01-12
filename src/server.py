@@ -88,7 +88,7 @@ class Server:
 
 class Connection:
     """
-    连接类，每个玩家的socket连接都是一个Connection对象
+    连接类每个玩家的socket连接都是一个Connection对象
     """
 
     def __init__(self, socket, connections):
@@ -107,7 +107,7 @@ class Connection:
         bytes = None
         try:
             while True:
-                bytes = self.socket.recv(4096)  # 我们这里只做一个简单的服务端框架，只做粘包不做分包处理。
+                bytes = self.socket.recv(4096 * 2)  # 我们这里只做一个简单的服务端框架，只做粘包不做分包处理。
                 if len(bytes) == 0:
                     Server.write_log("玩家离线：" + str(self.game_data))
                     self.socket.close()

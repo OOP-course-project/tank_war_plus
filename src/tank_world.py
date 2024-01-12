@@ -10,9 +10,12 @@ from utilise import *
 
 
 class Tank_world:
-    def __init__(self, screen: pygame.Surface, double_players=False) -> None:
+    def __init__(
+        self, screen: pygame.Surface, double_players=False, BFS_open=False
+    ) -> None:
         self.screen = screen
         self.double_players = double_players
+        self.BFS_open = BFS_open
         self.clock = pygame.time.Clock()
         self.game_over = False
         self.exit_confirm = False
@@ -77,7 +80,10 @@ class Tank_world:
             self.player_tank_group.add(self.player_tank2)
 
         for i in range(1, 4):
-            enemy = tank.Enemy_tank(i)
+            if BFS_open:
+                enemy = tank.BFS_enemy_tank(i)
+            else:
+                enemy = tank.Enemy_tank(i)
             self.all_tank_group.add(enemy)
             self.enemy_tank_group.add(enemy)
 
@@ -217,7 +223,10 @@ class Tank_world:
 
             if event.type == self.DELAYEVENT:
                 if len(self.enemy_tank_group) < 4:
-                    enemy = tank.Enemy_tank()
+                    if self.BFS_open:
+                        enemy = tank.BFS_enemy_tank()
+                    else:
+                        enemy = tank.Enemy_tank()
                     if pygame.sprite.spritecollide(
                         enemy, self.all_tank_group, False, None
                     ):
@@ -348,6 +357,81 @@ class Tank_world:
                 if key_pressed[pygame.K_KP0]:
                     self.tank_shoot(self.player_tank2)
 
+    def get_BFS_map(self, tank_group, brick_group, iron_group):
+        """
+        生成广度优先搜索（BFS）地图的障碍物。
+
+        参数：
+            tank_group (pygame.sprite.Group)：游戏中的坦克组。
+            brick_group (pygame.sprite.Group)：游戏中的砖块组。
+            iron_group (pygame.sprite.Group)：游戏中的铁块组。
+
+        返回：
+            set：表示游戏世界中障碍物的坐标集合。
+        """
+        # 创建一个空集合来存储障碍物的坐标
+        obstacles = set()
+        # 创建空列表来存储敌人的坐标信息
+        enemy_list = []
+        # 创建空列表来存储砖块的坐标信息
+        brick_list = []
+        # 创建空列表来存储铁块的坐标信息
+        iron_list = []
+
+        # 遍历坦克组中的每个坦克对象
+        for t in tank_group.sprites():
+            # 如果坦克不是玩家坦克，则将其坐标信息添加到敌人列表中
+            if not isinstance(t, tank.Player_tank):
+                enemy_list.append(
+                    (t.rect.left, t.rect.top, t.rect.right, t.rect.bottom)
+                )
+
+        # 遍历砖块组中的每个砖块对象
+        for brick in brick_group:
+            # 将砖块的四个边界点的坐标信息添加到砖块列表中
+            brick_list.append(
+                (brick.rect.left, brick.rect.top, brick.rect.right, brick.rect.bottom)
+            )
+
+        # 遍历铁块组中的每个铁块对象
+        for iron in iron_group:
+            # 将铁块的四个边界点的坐标信息添加到铁块列表中
+            iron_list.append(
+                (iron.rect.left, iron.rect.top, iron.rect.right, iron.rect.bottom)
+            )
+
+        # 遍历砖块列表中的每个砖块
+        for brick in brick_list:
+            # 将砖块的四个边界添加到障碍物集合中
+            for i in range(brick[0], brick[2]):
+                obstacles.add((i, brick[1]))
+                obstacles.add((i, brick[3]))
+            for i in range(brick[1], brick[3]):
+                obstacles.add((brick[0], i))
+                obstacles.add((brick[2], i))
+
+        # 遍历铁块列表中的每个铁块
+        for iron in iron_list:
+            # 将铁块的四个边界添加到障碍物集合中
+            for i in range(iron[0], iron[2]):
+                obstacles.add((i, iron[1]))
+                obstacles.add((i, iron[3]))
+            for i in range(iron[1], iron[3]):
+                obstacles.add((iron[0], i))
+                obstacles.add((iron[2], i))
+
+        # 遍历敌人列表中的每个敌人
+        for enemy in enemy_list:
+            # 将敌人的四个边界添加到障碍物集合中
+            for i in range(enemy[0], enemy[2]):
+                obstacles.add((i, enemy[1]))
+                obstacles.add((i, enemy[3]))
+            for i in range(enemy[1], enemy[3]):
+                obstacles.add((enemy[0], i))
+                obstacles.add((enemy[2], i))
+
+        return obstacles
+
     def draw_gui(self):
         # draw the exit popup
         if self.exit_draw:
@@ -423,6 +507,12 @@ class Tank_world:
                     self.moving2 = 0
 
         self.player_tank_group.update(self.screen)
+        if self.BFS_open:
+            obstacles = self.get_BFS_map(
+                self.all_tank_group,
+                self.back_ground.brick_group,
+                self.back_ground.iron_group,
+            )
 
         for enemy_tank in self.enemy_tank_group:
             if enemy_tank.flash:
@@ -433,11 +523,19 @@ class Tank_world:
                     )
                     if self.enemy_could_move:
                         self.all_tank_group.remove(enemy_tank)
-                        enemy_tank.move(
-                            self.all_tank_group,
-                            self.back_ground.brick_group,
-                            self.back_ground.iron_group,
-                        )
+                        if self.BFS_open:
+                            enemy_tank.move(
+                                self.all_tank_group,
+                                self.back_ground.brick_group,
+                                self.back_ground.iron_group,
+                                obstacles,
+                            )
+                        else:
+                            enemy_tank.move(
+                                self.all_tank_group,
+                                self.back_ground.brick_group,
+                                self.back_ground.iron_group,
+                            )
                         self.all_tank_group.add(enemy_tank)
                 else:
                     self.screen.blit(
@@ -446,11 +544,19 @@ class Tank_world:
                     )
                     if self.enemy_could_move:
                         self.all_tank_group.remove(enemy_tank)
-                        enemy_tank.move(
-                            self.all_tank_group,
-                            self.back_ground.brick_group,
-                            self.back_ground.iron_group,
-                        )
+                        if self.BFS_open:
+                            enemy_tank.move(
+                                self.all_tank_group,
+                                self.back_ground.brick_group,
+                                self.back_ground.iron_group,
+                                obstacles,
+                            )
+                        else:
+                            enemy_tank.move(
+                                self.all_tank_group,
+                                self.back_ground.brick_group,
+                                self.back_ground.iron_group,
+                            )
                         self.all_tank_group.add(enemy_tank)
             else:
                 # show the enemy tank appearance
@@ -755,5 +861,5 @@ if __name__ == "__main__":
     pygame.init()
     pygame.mixer.init()
     screen = pygame.display.set_mode((630, 630))
-    tw1 = Tank_world(screen, double_players=True)
+    tw1 = Tank_world(screen, double_players=False, BFS_open=True)
     tw1.run()
