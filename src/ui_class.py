@@ -269,6 +269,7 @@ class DropdownMenu(AbstractUIComponent):
         font_size=20,
         text_color=(0, 0, 0),
         background_color=(255, 255, 255),
+        selected_option=None,
     ):
         self.x = x
         self.y = y
@@ -279,7 +280,7 @@ class DropdownMenu(AbstractUIComponent):
         self.text_color = text_color
         self.background_color = background_color
         self.is_open = False
-        self.selected_option = None
+        self.selected_option = selected_option
 
     def draw(self, screen):
         pygame.draw.rect(

@@ -1,21 +1,26 @@
 import json
 import pygame
 
-brick_image = pygame.image.load(r"../image/brick.png")
-iron_image = pygame.image.load(r"../image/iron.png")
-
 
 class Brick(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, brick_image=pygame.image.load("../image/brick.png")):
         super().__init__()
         self.image = brick_image
         self.rect = self.image.get_rect()
 
+    def update(self, image):
+        self.image = image
+        self.rect = self.image.get_rect()
+
 
 class Iron(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, iron_image=pygame.image.load("../image/iron.png")):
         super().__init__()
         self.image = iron_image
+        self.rect = self.image.get_rect()
+
+    def update(self, image):
+        self.image = image
         self.rect = self.image.get_rect()
 
 
@@ -45,6 +50,10 @@ class Map:
                 3 + iron_data["y"] * 24,
             )
             self.iron_group.add(self.iron)
+
+    def update(self, brick_image, iron_image):
+        self.brick_group.update(brick_image)
+        self.iron_group.update(iron_image)
 
 
 class home(pygame.sprite.Sprite):

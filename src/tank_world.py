@@ -150,16 +150,20 @@ class Tank_world:
                 self.delay = 100
 
             self.clock.tick(60)
-            if self.game_over:
-                while self.game_over:
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            pygame.quit()
-                            sys.exit()
-                        if event.type == pygame.KEYDOWN:
-                            if event.key == pygame.K_SPACE:
-                                self.__init__(self.screen, self.double_players)
-                                self.run()
+            while self.game_over:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE:
+                            self.__init__(
+                                self.screen,
+                                self.map_path,
+                                self.double_players,
+                                self.BFS_open,
+                            )
+                            self.run()
 
     def tank_moving(
         self,
@@ -868,8 +872,8 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode((630, 630))
     tw1 = Tank_world(
         screen,
-        map_path="../maps/self_made_map.json",
+        map_path="../maps/initial_points.json",
         double_players=False,
-        BFS_open=True,
+        BFS_open=False,
     )
     tw1.run()

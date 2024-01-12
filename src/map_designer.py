@@ -652,7 +652,7 @@ class Map_designer:
 
 
 if __name__ == "__main__":
-    screen_width, screen_height = 800, 600
+    screen_width, screen_height = 824, 624
     screen = pygame.display.set_mode((screen_width, screen_height))
     designer = Map_designer(screen)
     designer.run()
