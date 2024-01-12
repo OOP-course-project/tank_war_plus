@@ -1,12 +1,16 @@
 import pygame
 import sys
 import traceback
-import wall
-import tank
-import food
 import ui_class
 import map_designer
+import bullet_printer
+import socket
+import threading
+import atexit
 from tank_world import Tank_world
+from net_tank_world import Net_tank_world
+from client import Client
+from server import Server
 from utilise import *
 
 
@@ -60,6 +64,17 @@ double_game_button = ui_class.Button(
     background_color=(30, 220, 30),
 )
 
+online_game_button = ui_class.Button(
+    350,
+    480,
+    button_width,
+    button_height,
+    "Online Game",
+    font_size=25,
+    text_color=WHITE,
+    background_color=(30, 30, 220),
+)
+
 setting_button = ui_class.Button(
     0,
     400,
@@ -72,36 +87,106 @@ setting_button = ui_class.Button(
 )
 
 
+button_list = [
+    single_game_button,
+    double_game_button,
+    setting_button,
+    online_game_button,
+]
+
+select_popup = ui_class.Popup(screen, "select player number", "Player 1", "Player 2")
+exit_signal = threading.Event()
+server_started = False
+
+
+def draw(screen, popup_running=False):
+    for button in button_list:
+        button.draw(screen)
+
+    if popup_running:
+        select_popup.draw()
+
+
+def run_server(ip, port, exit_signal):
+    global server_started
+    if server_started:
+        return
+    server_started = True
+    Server(ip, port, exit_signal)
+
+
+def clean_up(server_thread):
+    if server_thread.is_alive():
+        server_thread.join()
+
+
 def main():
-    initial_volume = 0.5
-    pygame.mixer.music.set_volume(initial_volume)
+    pygame.mixer.music.set_volume(0.5)
     pygame.mixer.music.load("../music/music1.mp3")
     pygame.mixer.music.play(-1)
     pygame.display.set_caption("Tank War Plus")
+    tw = Tank_world(screen, double_players=False)
     background = init_ui_background()
-    button_list = [single_game_button, double_game_button, setting_button]
 
     while True:
         screen.blit(background, (0, 0))
-        for button in button_list:
-            button.draw(screen)
+        draw(screen, select_popup.running)
 
         pygame.display.flip()
         mouse_pos = pygame.mouse.get_pos()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                exit_signal.set()
+                atexit._run_exitfuncs()
                 pygame.quit()
                 sys.exit()
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if single_game_button.click(event):
-                    tw = Tank_world(screen, double_players=False)
+                    tw.__init__(screen, double_players=False)
                     tw.run()
 
                 elif double_game_button.click(event):
-                    tw = Tank_world(screen, double_players=True)
+                    tw.__init__(screen, double_players=True)
                     tw.run()
+                elif online_game_button.click(event):
+                    select_popup.running = True
+                elif select_popup.running and event.type == pygame.MOUSEBUTTONDOWN:
+                    if select_popup.button1.click(event):
+                        select_popup.running = False
+                        server_thread = threading.Thread(
+                            target=run_server, args=("0.0.0.0", 8888, exit_signal)
+                        )
+                        server_thread.start()
+                        atexit.register(
+                            clean_up,
+                            server_thread,
+                        )
+                        s = socket.socket()
+                        s.connect(("192.168.1.153", 8888))
+                        client = Client(s, screen)
+                        client.send({"protocol": "cli_login", "role_id": 1})
+                        print("等待服务器响应")
+                        while not g.player:
+                            pass
+                        print("连接服务器成功")
+                        net_tank_world = Net_tank_world(screen, client)
+                        net_tank_world.run()
+                    if select_popup.button2.click(event):
+                        select_popup.running = False
+                        s = socket.socket()
+                        s.connect(("192.168.1.153", 8888))
+                        client = Client(s, screen)
+                        client.send({"protocol": "cli_login", "role_id": 2})
+                        print("等待服务器响应")
+                        while not g.player:
+                            pass
+                        print("连接服务器成功")
+                        net_tank_world = Net_tank_world(screen, client)
+                        net_tank_world.run()
+                    if select_popup.close_button.click(event):
+                        select_popup.running = False
                 elif setting_button.click(event):
                     return_flag = True
                     while return_flag:
@@ -125,6 +210,8 @@ def main():
                                     designer.run()
                                     pygame.mouse.set_visible(True)
                                     pygame.display.set_mode((630, 630))
+                                if enter_printer_button_rect.collidepoint(mouse_pos):
+                                    bullet_printer.main()
 
                         mouse_x, mouse_y = pygame.mouse.get_pos()
                         # 检测鼠标点击事件

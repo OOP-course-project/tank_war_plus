@@ -1,91 +1,35 @@
 import pygame
-import string
 
 
-class TextBox:
-    def __init__(
-        self,
-        surf,
-        left,
-        top,
-        width,
-        height,
-        font,
-        font_size=20,
-        text_color=(0, 0, 0),
-        background_color=(255, 255, 255),
-    ):
-        self.surf = surf
-        self.rect = pygame.Rect(left, top, width, height)
-        self.font = font
-        self.text_color = text_color
-        self.background_color = background_color
-        self.text_list = []
+class TextInputBox:
+    def __init__(self, screen, x, y, width, height, font_size=40):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.screen = screen
+        self.color = (255, 255, 255)
+        self.text = ""
+        self.font = pygame.font.Font(None, font_size)
+        self.active = False
 
-        # Whether activated or not
-        self.activate = False
-
-        # Whether to draw the cursor
-        self.cursor = True
-
-        # Cursor Drawing Counter
-        self.cursor_cnt = 0
-
-        # Whether to delete
-        self.delete = False
-
-    def draw(self):  # 每一帧都调用
-        # 画框
-        pygame.draw.rect(self, self.surf, self.background_color, self.rect, 1)
-
-        # 投放文字
-        text_pic = self.font.render("".join(self.text_list), True, self.text_color)
-        self.surf.blit(text_pic, (self.rect.left + 5, self.rect.top + 5))
-
-        # 更新光标计数器
-        self.cursor_cnt += 1
-        if self.cursor_cnt == 20:
-            self.cursor_cnt = 0
-            self.cursor = not self.cursor
-
-        # 绘制光标
-        if self.cursor and self.activate:
-            text_pic_rect = text_pic.get_rect()
-            x = text_pic_rect.width + text_pic_rect.x + 5
-            pygame.draw.line(
-                self.surf,
-                self.text_color,
-                (x, self.rect.y + 5),
-                (x, self.rect.y + self.rect.height - 5),
-                1,
-            )  # 1表示画笔粗细
-
-        # 删除文字
-        if self.delete:
-            self.text_list.pop()
-
-    def get_text(self, event):
+    def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
-                self.activate = True
+                self.active = True
             else:
-                self.activate = False
+                self.active = False
+        if event.type == pygame.KEYDOWN:
+            if self.active:
+                if event.key == pygame.K_RETURN:
+                    print(self.text)
+                    self.text = ""
+                elif event.key == pygame.K_BACKSPACE:
+                    self.text = self.text[:-1]
+                else:
+                    self.text += event.unicode
 
-        elif self.activate:
-            if event.key == pygame.K_BACKSPACE:
-                self.delete = True
-            elif (
-                event.unicode in string.ascii_letters or event.unicode in "0123456789_"
-            ):
-                self.text_list.append(event.unicode)
-
-        elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_BACKSPACE:
-                self.delete = False
-
-    @property
-    def text(self):
-        return "".join(self.text_list)
+    def draw(self):
+        pygame.draw.rect(self.screen, self.color, self.rect, 2)
+        text_surface = self.font.render(self.text, True, self.color)
+        self.screen.blit(text_surface, (self.rect.x + 5, self.rect.y + 5))
 
 
 class Slider:
@@ -386,3 +330,90 @@ class DropdownMenu:
                         self.selected_option = option
                         self.is_open = False
                         break
+
+
+class Popup:
+    def __init__(
+        self,
+        screen,
+        message,
+        button1_text="Button 1",
+        button2_text="Button 2",
+        x=None,
+        y=None,
+        width=300,
+        height=200,
+    ):
+        if x is None:
+            self.x = screen.get_width() // 2 - width // 2
+        else:
+            self.x = x
+        if y is None:
+            self.y = screen.get_height() // 2 - height // 2
+        else:
+            self.y = y
+        self.width = width
+        self.height = height
+        self.screen = screen
+        self.message = message
+        self.button1_text = button1_text
+        self.button2_text = button2_text
+        self.running = False
+
+        self.popup_rect = pygame.Rect(
+            self.x, self.y, self.width, self.height
+        )  # 设置弹窗的位置和大小
+        self.close_button = Button(
+            self.popup_rect.x + self.popup_rect.width - 30,
+            self.popup_rect.y + 10,
+            20,
+            20,
+            "X",
+            font_size=15,
+            text_color=(255, 255, 255),
+            background_color=(255, 0, 0),
+        )
+
+        # 添加两个选择按钮
+        self.button1 = Button(
+            self.popup_rect.x + 50,
+            self.popup_rect.y + self.popup_rect.height - 60,
+            80,
+            40,
+            self.button1_text,
+            font_size=15,
+            text_color=(0, 0, 0),
+            background_color=(200, 200, 200),
+        )
+        self.button2 = Button(
+            self.popup_rect.x + 180,
+            self.popup_rect.y + self.popup_rect.height - 60,
+            80,
+            40,
+            self.button2_text,
+            font_size=15,
+            text_color=(0, 0, 0),
+            background_color=(200, 200, 200),
+        )
+
+    def draw(self):
+        # 绘制弹窗背景
+        pygame.draw.rect(self.screen, (200, 200, 200), self.popup_rect)
+
+        # 绘制弹窗内容
+        font = pygame.font.Font(None, 24)
+        text_surface = font.render(self.message, True, (0, 0, 0))
+        text_rect = text_surface.get_rect(
+            center=(
+                self.popup_rect.x + self.popup_rect.width // 2,
+                self.popup_rect.y + 40,
+            )
+        )
+        self.screen.blit(text_surface, text_rect)
+
+        # 绘制关闭按钮
+        self.close_button.draw(self.screen)
+
+        # 绘制选择按钮
+        self.button1.draw(self.screen)
+        self.button2.draw(self.screen)

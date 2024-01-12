@@ -2,6 +2,8 @@ import pygame
 import bullet
 import random
 
+random.seed(1)
+
 tank_T1_0 = "../image/tank_T1_0.png"
 tank_T1_1 = "../image/tank_T1_1.png"
 tank_T1_2 = "../image/tank_T1_2.png"
@@ -24,6 +26,7 @@ class Player_tank(pygame.sprite.Sprite):
             self.tank_L1_image = pygame.image.load(tank_T2_1).convert_alpha()
             self.tank_L2_image = pygame.image.load(tank_T2_2).convert_alpha()
 
+        self.frame = 0
         self.level = 0
         self.tank = self.tank_L0_image
         self.tank_R0 = self.tank.subsurface((0, 0), (48, 48))
@@ -135,14 +138,19 @@ class Player_tank(pygame.sprite.Sprite):
 
 
 class Enemy_tank(pygame.sprite.Sprite):
+    tank_id = 0
+
     def __init__(self, x=None, kind=None) -> None:
         super().__init__()
+        Enemy_tank.tank_id = Enemy_tank.tank_id + 1
+        self.tank_id = Enemy_tank.tank_id
 
         self.flash = False
         self.times = 90
         self.kind = kind
         if not kind:
-            self.kind = random.choice([1, 2, 3, 4])
+            # self.kind = random.choice([1, 2, 3, 4])
+            self.kind = (Enemy_tank.tank_id % 4) + 1
 
         if self.kind == 1:
             self.enemy_x_0 = pygame.image.load("../image/enemy_1_0.png").convert_alpha()
@@ -163,7 +171,8 @@ class Enemy_tank(pygame.sprite.Sprite):
         self.x = x
 
         if not self.x:
-            self.x = random.choice([1, 2, 3])
+            # self.x = random.choice([1, 2, 3])
+            self.x = (Enemy_tank.tank_id % 3) + 1
         self.x -= 1
 
         self.tank_R0 = self.tank.subsurface((0, 48), (48, 48))
@@ -195,6 +204,8 @@ class Enemy_tank(pygame.sprite.Sprite):
             self.original_speed = 5
         if self.kind == 3:
             self.life = 3
+
+        self.enemy_could_move = True
 
     def shoot(self):
         self.bullet.life = True
@@ -253,6 +264,24 @@ class Enemy_tank(pygame.sprite.Sprite):
                 -self.direction_dic[self.direction][1],
             )
             self.direction = random.choice(["up", "down", "left", "right"])
+
+    def move_sync(self, direction, left, top):
+        self.direction = direction
+        self.rect.left = left
+        self.rect.top = top
+
+        if self.direction == "up":
+            self.tank_R0 = self.tank.subsurface((0, 0), (48, 48))
+            self.tank_R1 = self.tank.subsurface((48, 0), (48, 48))
+        elif self.direction == "down":
+            self.tank_R0 = self.tank.subsurface((0, 48), (48, 48))
+            self.tank_R1 = self.tank.subsurface((48, 48), (48, 48))
+        elif self.direction == "left":
+            self.tank_R0 = self.tank.subsurface((0, 96), (48, 48))
+            self.tank_R1 = self.tank.subsurface((48, 96), (48, 48))
+        elif self.direction == "right":
+            self.tank_R0 = self.tank.subsurface((0, 144), (48, 48))
+            self.tank_R1 = self.tank.subsurface((48, 144), (48, 48))
 
     def update(self):
         if self.life <= 0:

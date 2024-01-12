@@ -44,7 +44,6 @@ class Tank_world:
         self.start_sound = pygame.mixer.Sound(r"../music/start.wav")
         self.enemy_appear = pygame.image.load(r"../image/appear.png").convert_alpha()
         self.bang_sound.set_volume(1)
-        self.start_sound.play()
 
         self.all_tank_group = pygame.sprite.Group()
         self.player_tank_group = pygame.sprite.Group()
@@ -113,6 +112,7 @@ class Tank_world:
         self.switch_R1_R2_image = True
 
     def run(self):
+        self.start_sound.play()
         while not (self.game_over or self.exit_confirm):
             self.current_time = pygame.time.get_ticks()
             self.handle_events()
@@ -128,7 +128,7 @@ class Tank_world:
             if len(self.player_tank_group) == 0 or self.home.life == False:
                 self.game_over = True
 
-            self.control(self.current_time)
+            self.control()
             self.draw(self.current_time)
             self.draw_gui()
             pygame.display.flip()
@@ -229,6 +229,8 @@ class Tank_world:
                 if event.key == pygame.K_c and pygame.KMOD_CTRL:
                     pygame.quit()
                     sys.exit()
+                if event.key == pygame.K_ESCAPE:
+                    self.exit_draw = not self.exit_draw
 
             if event.dict == {}:
                 continue
@@ -291,11 +293,8 @@ class Tank_world:
 
         self.draw(self.current_time)
 
-    def control(self, current_time):
+    def control(self):
         key_pressed = pygame.key.get_pressed()
-
-        if key_pressed[pygame.K_ESCAPE]:
-            self.exit_draw = not self.exit_draw
 
         # player 1 control
         if self.player_tank1.life > 0:
@@ -307,7 +306,7 @@ class Tank_world:
                     self.back_ground.brick_group,
                     self.back_ground.iron_group,
                 ):
-                    self.moving1 += 1
+                    self.moving1 = 0
                 self.all_tank_group.add(self.player_tank1)
                 self.running_T1 = True
             if not self.moving1:
@@ -334,7 +333,7 @@ class Tank_world:
                         self.back_ground.brick_group,
                         self.back_ground.iron_group,
                     ):
-                        self.moving2 += 1
+                        self.moving2 = 0
                     self.all_tank_group.add(self.player_tank2)
                     self.running_T2 = True
                 else:
@@ -756,5 +755,5 @@ if __name__ == "__main__":
     pygame.init()
     pygame.mixer.init()
     screen = pygame.display.set_mode((630, 630))
-    tw1 = Tank_world(screen, double_players=False)
+    tw1 = Tank_world(screen, double_players=True)
     tw1.run()
