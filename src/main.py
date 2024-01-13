@@ -149,8 +149,8 @@ select_popup = ui_class.Popup(screen, "select player number", "Player 1", "Playe
 exit_signal = threading.Event()
 server_started = False
 BFS_open = True
-server_IP = "192.168.1.195"
-server_port = 10008
+server_IP = "192.168.1.153"
+server_port = 8888
 
 
 def draw(screen, popup_running=False):

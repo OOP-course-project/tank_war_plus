@@ -31,7 +31,9 @@ class Server:
         把一些重要的信息写入日志文件
         """
         with open(
-            "./" + time.strftime("%Y-%m-%d", time.localtime(time.time())) + ".log",
+            "../logs/"
+            + time.strftime("%Y-%m-%d", time.localtime(time.time()))
+            + ".log",
             mode="a+",
             encoding="utf8",
         ) as file:
@@ -117,6 +119,8 @@ class Connection:
                 # 处理数据
                 self.deal_data(bytes)
                 # print(bytes)
+        except json.decoder.JSONDecodeError:
+            pass
         except:
             self.socket.close()
             self.connections.remove(self)
