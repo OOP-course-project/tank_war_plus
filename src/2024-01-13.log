@@ -1,0 +1,22 @@
+[2024-01-13 20:31:32.341890]Traceback (most recent call last):
+  File "C:\Users\JasonYe\Desktop\tank_war_plus\src\server.py", line 110, in recv_data
+    bytes = self.socket.recv(4096 * 2)  # 我们这里只做一个简单的服务端框架，只做粘包不做分包处理。
+ConnectionResetError: [WinError 10054] 远程主机强迫关闭了一个现有的连接。
+[2024-01-13 20:35:30.880217]Traceback (most recent call last):
+  File "C:\Users\JasonYe\Desktop\tank_war_plus\src\server.py", line 118, in recv_data
+    self.deal_data(bytes)
+  File "C:\Users\JasonYe\Desktop\tank_war_plus\src\server.py", line 152, in deal_data
+    self.protocol_handler(self, protocol)
+  File "C:\Users\JasonYe\Desktop\tank_war_plus\src\server.py", line 190, in __call__
+    result = method(player, protocol)
+  File "C:\Users\JasonYe\Desktop\tank_war_plus\src\server.py", line 264, in player_pos
+    player.send_without_self(
+  File "C:\Users\JasonYe\Desktop\tank_war_plus\src\server.py", line 176, in send_without_self
+    player.send(data)
+  File "C:\Users\JasonYe\Desktop\tank_war_plus\src\server.py", line 159, in send
+    self.socket.sendall((json.dumps(data, ensure_ascii=False) + "|#|").encode())
+OSError: [WinError 10038] 在一个非套接字上尝试了一个操作。
+[2024-01-13 20:36:50.173988]Traceback (most recent call last):
+  File "C:\Users\JasonYe\Desktop\tank_war_plus\src\server.py", line 110, in recv_data
+    bytes = self.socket.recv(4096 * 2)  # 我们这里只做一个简单的服务端框架，只做粘包不做分包处理。
+ConnectionResetError: [WinError 10054] 远程主机强迫关闭了一个现有的连接。
