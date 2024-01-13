@@ -1,16 +1,19 @@
 import pygame
-import random
 
 
 def change_image(image, direction):
+    image = pygame.image.load(image)
     if direction == "up":
-        return image
+        # 把surface转换为图片
+        image = pygame.transform.rotate(image, 0)
     elif direction == "down":
-        return pygame.transform.rotate(image, 180)
+        image = pygame.transform.rotate(image, 180)
     elif direction == "left":
-        return pygame.transform.rotate(image, 90)
+        image = pygame.transform.rotate(image, 90)
     elif direction == "right":
-        return pygame.transform.rotate(image, 270)
+        image = pygame.transform.rotate(image, 270)
+
+    return image
 
 
 def init_ui_background():

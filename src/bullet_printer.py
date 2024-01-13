@@ -1,4 +1,5 @@
 import tkinter as tk
+import pygame
 from tkinter import simpledialog, messagebox
 from PIL import Image, ImageDraw
 from utilise import change_image
@@ -73,9 +74,9 @@ def main():
 
         # save photos for user-defined bullet
         bullet_up.save("../image/user_bullet_up.png")
-        bullet_down.save("../image/user_bullet_down.png")
-        bullet_left.save("../image/user_bullet_left.png")
-        bullet_right.save("../image/user_bullet_right.png")
+        pygame.image.save(bullet_down, "../image/user_bullet_down.png")
+        pygame.image.save(bullet_left, "../image/user_bullet_left.png")
+        pygame.image.save(bullet_right, "../image/user_bullet_right.png")
 
     def close_window():
         window.destroy()
