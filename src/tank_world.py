@@ -5,7 +5,6 @@ import tank
 import bullet
 import pygame
 import pygame_gui
-import numpy as np
 from utilise import *
 
 

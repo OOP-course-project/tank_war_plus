@@ -1,0 +1,9 @@
+# for basic game
+pygame
+pygame_gui
+pythontk
+pillow
+# for reinforcement learning
+gymnasium
+stable_baselines3
+torch

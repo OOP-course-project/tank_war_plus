@@ -42,10 +42,10 @@ class Net_tank_world:
         self.exit_popup = pygame_gui.windows.UIConfirmationDialog(
             rect=pygame.Rect(
                 (
-                    self.screen.get_rect().centerx - 100,
+                    self.screen.get_rect().centerx - 130,
                     self.screen.get_rect().centery - 100,
                 ),
-                (200, 200),
+                (260, 200),
             ),
             manager=self.gui_manager,
             window_title="Exit Confirmation",
@@ -551,7 +551,7 @@ class Net_tank_world:
             self.screen.blit(text, text_rect)
             pygame.display.flip()
 
-            while True:
+            while not self.exit_confirm:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         pygame.quit()
@@ -560,11 +560,11 @@ class Net_tank_world:
                         if event.key == pygame.K_SPACE and g.player.role_id == 1:
                             # 由1号玩家告知服务端游戏开始
                             self.client.send({"protocol": "game_start"})
-                            Net_tank_world(
-                                self.screen, self.client, self.double_players
-                            )
+                            self.__init__(self.screen, self.client, self.double_players)
+                            self.run()
                 if g.round_start:
-                    Net_tank_world(self.screen, self.client, self.double_players)
+                    self.__init__(self.screen, self.client, self.double_players)
+                    self.run()
 
     def draw_gui(self):
         # draw the exit popup
