@@ -64,7 +64,7 @@ def main():
         bullet_up = image
 
         # downward
-        bullet_down = (image, "down")
+        bullet_down = change_image(image, "down")
 
         # left
         bullet_left = change_image(image, "left")

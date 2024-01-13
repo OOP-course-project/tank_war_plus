@@ -2,16 +2,16 @@ import pygame
 
 
 def change_image(image, direction):
-    image = pygame.image.load(image)
+    pygame_image = pygame.image.fromstring(image.tobytes(), image.size, image.mode)
     if direction == "up":
         # 把surface转换为图片
-        image = pygame.transform.rotate(image, 0)
+        pass
     elif direction == "down":
-        image = pygame.transform.rotate(image, 180)
+        image = pygame.transform.rotate(pygame_image, 180)
     elif direction == "left":
-        image = pygame.transform.rotate(image, 90)
+        image = pygame.transform.rotate(pygame_image, 90)
     elif direction == "right":
-        image = pygame.transform.rotate(image, 270)
+        image = pygame.transform.rotate(pygame_image, 270)
 
     return image
 
