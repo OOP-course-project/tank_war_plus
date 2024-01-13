@@ -119,9 +119,15 @@ class Player_tank(pygame.sprite.Sprite):
                 self.rect = self.rect.move(self.direction_dic["left"])
                 return True
         if (
-            pygame.sprite.spritecollide(self, brick_group, False, None)
-            or pygame.sprite.spritecollide(self, tank_group, False, None)
-            or pygame.sprite.spritecollide(self, iron_group, False, None)
+            pygame.sprite.spritecollide(
+                self, brick_group, False, pygame.sprite.collide_rect_ratio(0.9)
+            )
+            or pygame.sprite.spritecollide(
+                self, tank_group, False, pygame.sprite.collide_rect_ratio(0.9)
+            )
+            or pygame.sprite.spritecollide(
+                self, iron_group, False, pygame.sprite.collide_rect_ratio(0.9)
+            )
         ):
             dx, dy = self.direction_dic[self.direction]
             self.rect = self.rect.move(-dx, -dy)

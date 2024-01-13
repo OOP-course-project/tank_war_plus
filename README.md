@@ -1,6 +1,34 @@
-# tank_war_plus
+# Tank World Plus
 
 Tank World Plus is a large assignment we completed in our Advanced Programming course in SCUT. This is a tank battle game based on Pygame, with rich game elements and interactivity. Below is some information about this project and instructions for use.
+
+## Project structure
+
+tank_war_plus
+├── README.md
+├── fonts
+│   └── FiraCode-Medium.ttf
+├── image
+│   ├── TankWar.png
+│   ├── bullet_up.png
+│   └── ...
+├── maps
+│   ├── initial_points.json
+│   ├── random_map.json
+│   └── self_made_map.json
+├── music
+│   ├── Gunfire.wav
+│   └── ...
+└── src
+    ├── agent.py
+    ├── bullet.py
+    ├── bullet_printer.py
+    ├── client.py
+    ├── food.py
+    ├── main.py
+    ├── net_tank_world.py
+    ├── utilise.py
+    └── ...
 
 ## Game starts
 
