@@ -31,9 +31,7 @@ class Server:
         把一些重要的信息写入日志文件
         """
         with open(
-            "../logs/"
-            + time.strftime("%Y-%m-%d", time.localtime(time.time()))
-            + ".log",
+            time.strftime("%Y-%m-%d", time.localtime(time.time())) + ".log",
             mode="a+",
             encoding="utf8",
         ) as file:
