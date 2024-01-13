@@ -38,7 +38,7 @@ class Tank_game_env(gymnasium.Env):
 
     def reset(self, seed=None):
         self.game = tank_world.Tank_world(
-            self.screen, double_players=self.double_players
+            self.screen, double_players=self.double_players, BFS_open=True
         )
         return self.get_observation(), {}
 
@@ -95,23 +95,23 @@ env = DummyVecEnv([lambda: Tank_game_env()])
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# model = PPO(
-#     "MultiInputPolicy",
-#     env,
-#     verbose=1,
-#     learning_rate=3e-4,
-#     device=device,
-#     batch_size=128,
-#     tensorboard_log="./PPOTankWorld_tensorboard/",
-# )
-
-model = PPO.load(
-    "./tank_model.zip",
-    env=env,
+model = PPO(
+    "MultiInputPolicy",
+    env,
+    verbose=1,
+    learning_rate=3e-4,
     device=device,
+    batch_size=128,
     tensorboard_log="./PPOTankWorld_tensorboard/",
 )
 
-model.learn(total_timesteps=300000, callback=checkpoint_callback)
+# model = PPO.load(
+#     "./tank_model.zip",
+#     env=env,
+#     device=device,
+#     tensorboard_log="./PPOTankWorld_tensorboard/",
+# )
+
+model.learn(total_timesteps=300000)
 
 model.save("tank_model")

@@ -1,219 +1,26 @@
 import pygame
-import sys
-import wall
-import tank
-import bullet
-import pygame
 import pygame_gui
-import numpy as np
-from utilise import *
+import tank
+import tank_world
+import bullet
+import wall
+import random_map_generator
+import sys
 
 
-class Tank_world:
+class Tank_world_Challenge(tank_world.Tank_world):
     def __init__(
         self,
-        screen: pygame.Surface,
+        screen,
         map_path="../maps/initial_points.json",
         double_players=False,
-        BFS_open=False,
+        BFS_open=True,
     ) -> None:
-        self.screen = screen
-        self.map_path = map_path
-        self.double_players = double_players
-        self.BFS_open = BFS_open
-        self.clock = pygame.time.Clock()
-        self.game_over = False
-        self.exit_confirm = False
-
-        # init gui
-        self.gui_manager = pygame_gui.UIManager(
-            (self.screen.get_width(), self.screen.get_height())
+        super().__init__(
+            screen, map_path=map_path, double_players=double_players, BFS_open=BFS_open
         )
-
-        self.exit_popup = pygame_gui.windows.UIConfirmationDialog(
-            rect=pygame.Rect(
-                (
-                    self.screen.get_rect().centerx - 130,
-                    self.screen.get_rect().centery - 100,
-                ),
-                (260, 200),
-            ),
-            manager=self.gui_manager,
-            window_title="Exit Confirmation",
-            action_long_desc="Are you sure you want to exit?",
-            action_short_name="exit",
-            blocking=True,
-        )
-
-        self.exit_draw = False
-        self.time_delta = self.clock.tick(60) / 1000
-
-        self.background_image = pygame.image.load(
-            r"../image/background.png"
-        ).convert_alpha()
-
-        self.home = wall.home()
-        self.bang_sound = pygame.mixer.Sound(r"../music/bang.wav")
-        self.fire_sound = pygame.mixer.Sound(r"../music/Gunfire.wav")
-        self.start_sound = pygame.mixer.Sound(r"../music/start.wav")
-        self.enemy_appear = pygame.image.load(r"../image/appear.png").convert_alpha()
-        self.bang_sound.set_volume(1)
-
-        self.all_tank_group = pygame.sprite.Group()
-        self.player_tank_group = pygame.sprite.Group()
-        self.enemy_tank_group = pygame.sprite.Group()
-        self.enemy_bullet_group = pygame.sprite.Group()
-
-        self.back_ground = wall.Map(self.map_path)
-
-        # position for reinforcement learning observation
-        self.brick_pos = [[0 for i in range(26)] for j in range(26)]
-        self.iron_pos = [[0 for i in range(26)] for j in range(26)]
-        self.enemy_pos = [[0 for i in range(13)] for j in range(13)]
-        self.player_pos = [[0 for i in range(13)] for j in range(13)]
-        self.bullet_pos = [[0 for i in range(52)] for j in range(52)]
-
-        # postion for BFS algorithm
-        self.brick_pos_BFS = [[0 for i in range(630)] for j in range(630)]
-        self.iron_pos_BFS = [[0 for i in range(630)] for j in range(630)]
-        self.player_pos_BFS = [[0 for i in range(630)] for j in range(630)]
-        self.enemy_pos_BFS = [[0 for i in range(630)] for j in range(630)]
-
-        # self.foods = food.Food()
-
-        self.player_tank1 = tank.Player_tank(1)
-        self.all_tank_group.add(self.player_tank1)
-        self.player_tank_group.add(self.player_tank1)
-
-        if self.double_players:
-            self.player_tank2 = tank.Player_tank(2)
-            self.all_tank_group.add(self.player_tank2)
-            self.player_tank_group.add(self.player_tank2)
-
-        for i in range(1, 4):
-            if BFS_open:
-                enemy = tank.BFS_enemy_tank(i)
-            else:
-                enemy = tank.Enemy_tank(i)
-            self.all_tank_group.add(enemy)
-            self.enemy_tank_group.add(enemy)
-
-        # enemy tank appearance image
-        self.appearance = []
-        self.appearance.append(self.enemy_appear.subsurface((0, 0), (48, 48)))
-        self.appearance.append(self.enemy_appear.subsurface((48, 0), (48, 48)))
-        self.appearance.append(self.enemy_appear.subsurface((96, 0), (48, 48)))
-
-        # custom events
-        self.DELAYEVENT = pygame.constants.USEREVENT
-        pygame.time.set_timer(self.DELAYEVENT, 200)
-        self.ENEMYBULLETNOTCOOLINGEVENT = pygame.constants.USEREVENT + 1
-        pygame.time.set_timer(self.ENEMYBULLETNOTCOOLINGEVENT, 1000)
-        self.PLAYERBULLETNOTCOOLINGEVENT = pygame.constants.USEREVENT + 2
-        self.NOTMOVEEVENT = pygame.constants.USEREVENT + 3
-        pygame.time.set_timer(self.NOTMOVEEVENT, 8000)
-
-        self.current_time = pygame.time.get_ticks()
-        self.delay = 100
-        self.moving1 = 0
-        self.score1 = 0
-        self.damage1 = 0
-        self.running_T1 = True
-        self.last_player_shot_time_T1 = 0
-        if self.double_players:
-            self.moving2 = 0
-            self.score2 = 0
-            self.running_T2 = True
-            self.last_player_shot_time_T2 = 0
-        self.enemy_could_move = True
-        self.switch_R1_R2_image = True
-
-    def run(self):
-        self.start_sound.play()
-        while not (self.game_over or self.exit_confirm):
-            self.current_time = pygame.time.get_ticks()
-            self.handle_events()
-            self.gui_manager.update(self.time_delta)
-            # update the state of player tank
-            self.player_tank_group.update(self.screen)
-            self.enemy_tank_group.update()
-
-            for enemy_tank in self.enemy_tank_group:
-                if enemy_tank.slow_down:
-                    if self.current_time - enemy_tank.slow_down_timer >= 5000:
-                        enemy_tank.slow_down = False
-            if len(self.player_tank_group) == 0 or self.home.life == False:
-                self.game_over = True
-
-            self.control()
-            self.draw(self.current_time)
-            self.draw_gui()
-            pygame.display.flip()
-
-            self.delay -= 1
-
-            if not self.delay:
-                self.delay = 100
-
-            self.clock.tick(60)
-            while self.game_over:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                        sys.exit()
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_SPACE:
-                            self.__init__(
-                                self.screen,
-                                self.map_path,
-                                self.double_players,
-                                self.BFS_open,
-                            )
-                            self.run()
-
-    def tank_moving(
-        self,
-        player_tank,
-        direction,
-    ):
-        if player_tank == self.player_tank1:
-            self.moving1 = 7
-            self.running_T1 = True
-        elif player_tank == self.player_tank2:
-            self.moving2 = 7
-            self.running_T2 = True
-        player_tank.direction = direction
-        self.all_tank_group.remove(player_tank)
-        if player_tank.move_func(
-            self.all_tank_group,
-            self.back_ground.brick_group,
-            self.back_ground.iron_group,
-        ):
-            if player_tank == self.player_tank1:
-                self.moving1 = 0
-            elif player_tank == self.player_tank2:
-                self.moving2 = 0
-        self.all_tank_group.add(player_tank)
-
-    def tank_shoot(self, player_tank):
-        if player_tank == self.player_tank1:
-            if self.current_time - self.last_player_shot_time_T1 >= 500:
-                self.fire_sound.play()
-                player_tank.shoot()
-                player_tank.bullet_not_cooling = True
-                if player_tank == self.player_tank1:
-                    self.last_player_shot_time_T1 = self.current_time
-                elif player_tank == self.player_tank2:
-                    self.last_player_shot_time_T2 = self.current_time
-        elif player_tank == self.player_tank2:
-            if self.current_time - self.last_player_shot_time_T2 >= 500:
-                self.fire_sound.play()
-                player_tank.shoot()
-                player_tank.bullet_not_cooling = True
-                if player_tank == self.player_tank1:
-                    self.last_player_shot_time_T1 = self.current_time
-                elif player_tank == self.player_tank2:
-                    self.last_player_shot_time_T2 = self.current_time
+        self.level_cnt = 0
+        self.map_generator = random_map_generator.generate_map(26, 26)
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -242,6 +49,9 @@ class Tank_world:
                         enemy = tank.BFS_enemy_tank()
                     else:
                         enemy = tank.Enemy_tank()
+
+                    enemy.speed = self.level_cnt / 5 + 3
+
                     if pygame.sprite.spritecollide(
                         enemy, self.all_tank_group, False, None
                     ):
@@ -265,191 +75,90 @@ class Tank_world:
                 if event.ui_element == self.exit_popup:
                     self.exit_confirm = True
 
-    def update(self):
-        self.current_time = pygame.time.get_ticks()
-        self.handle_events()
-        self.player_tank_group.update(self.screen)
-        self.enemy_tank_group.update()
+    def run(self):
+        self.start_sound.play()
 
-        # update the postion of objects for reinforcement learning observation
-        self.brick_pos = [[0 for i in range(26)] for j in range(26)]
-        for brick in self.back_ground.brick_group:
-            self.brick_pos[(brick.rect.left - 3) // 24][(brick.rect.top - 3) // 24] = 1
-        self.iron_pos = [[0 for i in range(26)] for j in range(26)]
-        for iron in self.back_ground.iron_group:
-            self.iron_pos[(iron.rect.left - 3) // 24][(iron.rect.top - 3) // 24] = 1
-        self.enemy_pos = [[0 for i in range(13)] for j in range(13)]
-        for enemy in self.enemy_tank_group:
-            self.enemy_pos[(enemy.rect.left - 3) // 48][(enemy.rect.top - 3) // 48] = 1
-        self.player_pos = [[0 for i in range(13)] for j in range(13)]
-        for play in self.player_tank_group:
-            self.player_pos[(play.rect.left - 3) // 48][(play.rect.top - 3) // 48] = 1
-        for bullet in self.enemy_bullet_group:
-            if (
-                bullet.rect.left < 3
-                or bullet.rect.right > 627
-                or bullet.rect.top < 3
-                or bullet.rect.bottom > 627
-            ):
-                bullet.life = False
-            else:
-                self.bullet_pos[(bullet.rect.left - 3) // 12][
-                    (bullet.rect.top - 3) // 12
-                ] = 1
+        while not (self.game_over or self.exit_confirm):
+            self.current_time = pygame.time.get_ticks()
+            self.handle_events()
+            self.gui_manager.update(self.time_delta)
+            # update the state of player tank
+            self.player_tank_group.update(self.screen)
+            self.enemy_tank_group.update()
 
-        # update the postion of objects for BFS algorithm
-        self.brick_pos_BFS = [[0 for i in range(630)] for j in range(630)]
-        # for brick in self.back_ground.brick_group:
-        self.iron_pos_BFS = [[0 for i in range(630)] for j in range(630)]
-        # for iron in self.back_ground.iron_group:
-        self.player_pos_BFS = [[0 for i in range(630)] for j in range(630)]
-        # for play in self.player_tank_group:
-        self.enemy_pos_BFS = [[0 for i in range(630)] for j in range(630)]
-        # for enemy in self.enemy_tank_group:
+            for enemy_tank in self.enemy_tank_group:
+                if enemy_tank.slow_down:
+                    if self.current_time - enemy_tank.slow_down_timer >= 5000:
+                        enemy_tank.slow_down = False
+            if len(self.player_tank_group) == 0:
+                self.game_over = True
 
-        for enemy_tank in self.enemy_tank_group:
-            if enemy_tank.slow_down:
-                if self.current_time - enemy_tank.slow_down_timer >= 5000:
-                    enemy_tank.slow_down = False
-        if len(self.player_tank_group) == 0:
-            self.game_over = True
+            self.control()
+            self.draw(self.current_time)
+            self.draw_gui()
+            pygame.display.flip()
 
-        self.draw(self.current_time)
+            self.delay -= 1
 
-    def control(self):
-        key_pressed = pygame.key.get_pressed()
+            if not self.delay:
+                self.delay = 100
 
-        # player 1 control
-        if self.player_tank1.life > 0:
-            if self.moving1:
-                self.moving1 -= 1
-                self.all_tank_group.remove(self.player_tank1)
-                if self.player_tank1.move_func(
-                    self.all_tank_group,
-                    self.back_ground.brick_group,
-                    self.back_ground.iron_group,
-                ):
-                    self.moving1 = 0
-                self.all_tank_group.add(self.player_tank1)
-                self.running_T1 = True
-            if not self.moving1:
-                if key_pressed[pygame.K_w]:
-                    self.tank_moving(self.player_tank1, "up")
+            self.clock.tick(60)
 
-                elif key_pressed[pygame.K_s]:
-                    self.tank_moving(self.player_tank1, "down")
-                elif key_pressed[pygame.K_a]:
-                    self.tank_moving(self.player_tank1, "left")
-                elif key_pressed[pygame.K_d]:
-                    self.tank_moving(self.player_tank1, "right")
-            if key_pressed[pygame.K_j]:
-                self.tank_shoot(self.player_tank1)
-
-        if self.double_players:
-            if self.player_tank2.life > 0:
-                # player 2 moving
-                if self.moving2:
-                    self.moving2 -= 1
-                    self.all_tank_group.remove(self.player_tank2)
-                    if self.player_tank2.move_func(
-                        self.all_tank_group,
-                        self.back_ground.brick_group,
-                        self.back_ground.iron_group,
-                    ):
-                        self.moving2 = 0
-                    self.all_tank_group.add(self.player_tank2)
-                    self.running_T2 = True
-                else:
-                    if key_pressed[pygame.K_UP]:
-                        self.tank_moving(self.player_tank2, "up")
-                    elif key_pressed[pygame.K_DOWN]:
-                        self.tank_moving(self.player_tank2, "down")
-                    elif key_pressed[pygame.K_LEFT]:
-                        self.tank_moving(self.player_tank2, "left")
-                    elif key_pressed[pygame.K_RIGHT]:
-                        self.tank_moving(self.player_tank2, "right")
-                if key_pressed[pygame.K_KP0]:
-                    self.tank_shoot(self.player_tank2)
-
-    def get_BFS_map(self, tank_group, brick_group, iron_group):
-        """
-        生成广度优先搜索（BFS）地图的障碍物。
-
-        参数：
-            tank_group (pygame.sprite.Group)：游戏中的坦克组。
-            brick_group (pygame.sprite.Group)：游戏中的砖块组。
-            iron_group (pygame.sprite.Group)：游戏中的铁块组。
-
-        返回：
-            set：表示游戏世界中障碍物的坐标集合。
-        """
-        # 创建一个空集合来存储障碍物的坐标
-        obstacles = set()
-        # 创建空列表来存储敌人的坐标信息
-        enemy_list = []
-        # 创建空列表来存储砖块的坐标信息
-        brick_list = []
-        # 创建空列表来存储铁块的坐标信息
-        iron_list = []
-
-        # 遍历坦克组中的每个坦克对象
-        for t in tank_group.sprites():
-            # 如果坦克不是玩家坦克，则将其坐标信息添加到敌人列表中
-            if not isinstance(t, tank.Player_tank):
-                enemy_list.append(
-                    (t.rect.left, t.rect.top, t.rect.right, t.rect.bottom)
+            if self.score1 >= 5:
+                self.map_path = "../maps/random_map.json"
+                self.map_generator.randomly_generate_map()
+                self.map_generator.save_map(self.map_path)
+                self.level_cnt = self.level_cnt + 1
+                self.screen.fill((0, 0, 0))
+                font = pygame.font.Font(None, 36)
+                congratulation_text = font.render(
+                    f"Congratulations! Level {self.level_cnt} passed!",
+                    True,
+                    (255, 255, 255),
                 )
+                congratulation_rect = congratulation_text.get_rect()
+                continue_text = font.render(
+                    "Press SPACE to play the next level.", True, (255, 255, 255)
+                )
+                continue_rect = continue_text.get_rect()
+                congratulation_rect.center = (
+                    self.screen.get_rect().centerx,
+                    self.screen.get_rect().centery,
+                )
+                continue_rect.center = (
+                    self.screen.get_rect().centerx,
+                    self.screen.get_rect().centery + 30,
+                )
+                self.screen.blit(continue_text, continue_rect)
+                self.screen.blit(congratulation_text, congratulation_rect)
+                pygame.display.flip()
 
-        # 遍历砖块组中的每个砖块对象
-        for brick in brick_group:
-            # 将砖块的四个边界点的坐标信息添加到砖块列表中
-            brick_list.append(
-                (brick.rect.left, brick.rect.top, brick.rect.right, brick.rect.bottom)
-            )
+                while self.score1 >= 5:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            sys.exit()
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_SPACE:
+                                level_cnt_temp = self.level_cnt  # 存储当前关卡计数值
+                                if self.level_cnt > 0:
+                                    self.__init__(
+                                        screen=self.screen,
+                                        map_path=self.map_path,
+                                        double_players=self.double_players,
+                                        BFS_open=True,
+                                    )
+                                else:
+                                    self.__init__(
+                                        screen=self.screen,
+                                        map_path=self.map_path,
+                                        double_players=self.double_players,
+                                        BFS_open=False,
+                                    )
 
-        # 遍历铁块组中的每个铁块对象
-        for iron in iron_group:
-            # 将铁块的四个边界点的坐标信息添加到铁块列表中
-            iron_list.append(
-                (iron.rect.left, iron.rect.top, iron.rect.right, iron.rect.bottom)
-            )
-
-        # 遍历砖块列表中的每个砖块
-        for brick in brick_list:
-            # 将砖块的四个边界添加到障碍物集合中
-            for i in range(brick[0], brick[2]):
-                obstacles.add((i, brick[1]))
-                obstacles.add((i, brick[3]))
-            for i in range(brick[1], brick[3]):
-                obstacles.add((brick[0], i))
-                obstacles.add((brick[2], i))
-
-        # 遍历铁块列表中的每个铁块
-        for iron in iron_list:
-            # 将铁块的四个边界添加到障碍物集合中
-            for i in range(iron[0], iron[2]):
-                obstacles.add((i, iron[1]))
-                obstacles.add((i, iron[3]))
-            for i in range(iron[1], iron[3]):
-                obstacles.add((iron[0], i))
-                obstacles.add((iron[2], i))
-
-        # 遍历敌人列表中的每个敌人
-        for enemy in enemy_list:
-            # 将敌人的四个边界添加到障碍物集合中
-            for i in range(enemy[0], enemy[2]):
-                obstacles.add((i, enemy[1]))
-                obstacles.add((i, enemy[3]))
-            for i in range(enemy[1], enemy[3]):
-                obstacles.add((enemy[0], i))
-                obstacles.add((enemy[2], i))
-
-        return obstacles
-
-    def draw_gui(self):
-        # draw the exit popup
-        if self.exit_draw:
-            self.gui_manager.draw_ui(self.screen)
+                                self.level_cnt = level_cnt_temp  # 恢复关卡计数值
+                                self.run()
 
     def draw(self, current_time):
         # draw the exit popup
@@ -808,48 +517,30 @@ class Tank_world:
                         self.home.life = False
                         enemy_tank.bullet.life = False
 
-        if self.game_over:
+        if self.game_over or self.home.life == False:
+            font = pygame.font.Font(None, 36)
             self.screen.fill((0, 0, 0))
             text = font.render("Game Over!", True, (255, 255, 255))
             text_rect = text.get_rect()
             score1_text = font.render(
-                "Player 1 Score: " + str(self.score1), True, (255, 255, 255)
+                "Number of levels passed by the player: " + str(self.level_cnt),
+                True,
+                (255, 255, 255),
             )
-            if not self.double_players:
-                text_rect.center = (
-                    self.screen.get_rect().centerx,
-                    self.screen.get_rect().centery,
-                )
-                self.screen.blit(text, text_rect)
-                score_rect = score1_text.get_rect()
-                score_rect.center = (
-                    self.screen.get_rect().centerx,
-                    self.screen.get_rect().centery + 20,
-                )
-                self.screen.blit(score1_text, score_rect)
-            if self.double_players:
-                text_rect.center = (
-                    self.screen.get_rect().centerx,
-                    self.screen.get_rect().centery - 20,
-                )
-                self.screen.blit(text, text_rect)
-                score2_text = font.render(
-                    "Player 2 Score: " + str(self.score2), True, (255, 255, 255)
-                )
-                score1_rect = score1_text.get_rect()
-                score2_rect = score2_text.get_rect()
-                score1_rect.center = (
-                    self.screen.get_rect().centerx,
-                    self.screen.get_rect().centery,
-                )
-                score2_rect.center = (
-                    self.screen.get_rect().centerx,
-                    self.screen.get_rect().centery + 20,
-                )
-                self.screen.blit(score1_text, score1_rect)
-                self.screen.blit(score2_text, score2_rect)
 
-            text = font.render("Press space to play again.", True, (255, 255, 255))
+            text_rect.center = (
+                self.screen.get_rect().centerx,
+                self.screen.get_rect().centery,
+            )
+            self.screen.blit(text, text_rect)
+            score_rect = score1_text.get_rect()
+            score_rect.center = (
+                self.screen.get_rect().centerx,
+                self.screen.get_rect().centery + 20,
+            )
+            self.screen.blit(score1_text, score_rect)
+
+            text = font.render("Press SPACE to play again.", True, (255, 255, 255))
             text_rect = text.get_rect()
             text_rect.center = (
                 self.screen.get_rect().centerx,
@@ -857,28 +548,28 @@ class Tank_world:
             )
             self.screen.blit(text, text_rect)
             pygame.display.flip()
-
-    def get_reward(self):
-        current_time = self.current_time / 1000
-        # unit time score
-        per_score = self.score1 / self.current_time
-        # unit time damage
-        per_damage = self.damage1 / self.current_time
-        reward = 1.5 * self.score1 + 7 * per_score + 5 * per_damage + 0.4 * self.damage1
-        return reward
-
-    def is_game_over(self):
-        return self.game_over or (self.home.life == False)
+            while self.game_over or self.home.life == False:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE:
+                            self.__init__(
+                                screen=self.screen,
+                                map_path=self.map_path,
+                                double_players=self.double_players,
+                                BFS_open=self.BFS_open,
+                            )
+                            self.run()
 
 
 if __name__ == "__main__":
-    pygame.init()
-    pygame.mixer.init()
-    screen = pygame.display.set_mode((630, 630))
-    tw1 = Tank_world(
-        screen,
-        map_path="../maps/initial_points.json",
-        double_players=False,
-        BFS_open=False,
-    )
-    tw1.run()
+    try:
+        pygame.init()
+        screen = pygame.display.set_mode((630, 630))
+        pygame.display.set_caption("Tank War")
+        tw = Tank_world_Challenge(screen, double_players=False, BFS_open=False)
+        tw.run()
+    finally:
+        pygame.quit()

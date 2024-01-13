@@ -14,11 +14,8 @@ def change_image(image, direction):
 
 
 def init_ui_background():
-    single_game_girl = pygame.image.load("../image/single_game_girl.png")
-    double_game_girls = pygame.image.load("../image/double_game_girls.png")
-    backgrounds = [single_game_girl, double_game_girls]
-    background = random.choice(backgrounds)
-    return background
+    tank_background = pygame.image.load("../image/tank_background.png")
+    return tank_background
 
 
 class Global:

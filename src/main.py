@@ -9,6 +9,7 @@ import socket
 import threading
 import atexit
 from tank_world import Tank_world
+from tank_world_challenge import Tank_world_Challenge
 from net_tank_world import Net_tank_world
 from client import Client
 from server import Server
@@ -36,7 +37,7 @@ screen = pygame.display.set_mode((630, 630))
 # 初始化地图下拉菜单, 居中显示
 map_dropdown = ui_class.DropdownMenu(
     screen.get_width() / 2 - 100,
-    200,
+    170,
     200,
     50,
     [],
@@ -54,47 +55,84 @@ music_volume_slider = ui_class.Slider(
 )
 
 single_game_button = ui_class.Button(
-    350,
-    120,
-    button_width,
-    button_height,
+    493,
+    52,
+    119,
+    83,
     "Single Game",
-    font_size=25,
+    font_size=20,
     text_color=WHITE,
-    background_color=(220, 20, 20),
+    background_color=(26, 26, 26),
+    border_color=(92, 16 * 13, 50),
 )
 
 double_game_button = ui_class.Button(
-    350,
-    300,
-    button_width,
-    button_height,
+    493,
+    211,
+    119,
+    83,
     "Double Game",
-    font_size=25,
+    font_size=20,
     text_color=WHITE,
-    background_color=(30, 220, 30),
+    background_color=(26, 26, 26),
+    border_color=(92, 16 * 13, 50),
 )
 
 online_game_button = ui_class.Button(
-    350,
-    480,
-    button_width,
-    button_height,
+    493,
+    370,
+    119,
+    83,
     "Online Game",
-    font_size=25,
+    font_size=20,
     text_color=WHITE,
-    background_color=(30, 30, 220),
+    background_color=(26, 26, 26),
+    border_color=(92, 16 * 13, 50),
 )
 
-setting_button = ui_class.Button(
-    0,
-    400,
-    button_width,
-    button_height,
-    "Settings",
-    font_size=25,
+challenge_game_button = ui_class.Button(
+    493,
+    529,
+    119,
+    83,
+    "Challenge Mode",
+    font_size=20,
     text_color=WHITE,
-    background_color=(210, 180, 140),
+    background_color=(26, 26, 26),
+    border_color=(92, 16 * 13, 50),
+)
+
+about_button = ui_class.Button(
+    screen.get_width() / 2 - 60,
+    565,
+    120,
+    37,
+    "About",
+    font_size=20,
+    text_color=WHITE,
+    background_color=(26, 26, 26),
+    border_color=(92, 16 * 13, 50),
+)
+
+setting_button = ui_class.RoundedRectangleButton(
+    50,
+    527,
+    140,
+    85,
+    10,
+    "Settings",
+    font_size=20,
+    text_color=WHITE,
+    background_color=(40, 40, 40),
+    border_color=(92, 16 * 13, 50),
+)
+
+text_box_font = pygame.font.Font("../fonts/FiraCode-Medium.ttf", 20)
+ip_textbox = ui_class.TextInputBox(
+    screen, screen.get_rect().centerx - 50, 250, 200, 30, text_box_font
+)
+port_textbox = ui_class.TextInputBox(
+    screen, screen.get_rect().centerx - 50, 300, 200, 30, text_box_font
 )
 
 
@@ -102,13 +140,17 @@ button_list = [
     single_game_button,
     double_game_button,
     setting_button,
+    challenge_game_button,
+    about_button,
     online_game_button,
 ]
 
 select_popup = ui_class.Popup(screen, "select player number", "Player 1", "Player 2")
 exit_signal = threading.Event()
 server_started = False
-BFS_open = False
+BFS_open = True
+server_IP = "192.168.1.153"
+server_port = 8888
 
 
 def draw(screen, popup_running=False):
@@ -139,15 +181,23 @@ def main():
     pygame.display.set_caption("Tank War Plus")
     pygame.display.set_icon(pygame.image.load("../image/icon.png"))
     now_map_path = "../maps/initial_points.json"
+    global server_IP, server_port, BFS_open, server_started, screen
 
     tw = Tank_world(
         screen,
-        map_path="../maps/initial_points.json",
+        map_path=now_map_path,
         double_players=False,
         BFS_open=BFS_open,
     )
+
+    tw_challenge = Tank_world_Challenge(
+        screen,
+        map_path=now_map_path,
+        double_players=False,
+        BFS_open=BFS_open,
+    )
+
     background = init_ui_background()
-    setting_background = pygame.image.load("../image/setting_background.png")
 
     while True:
         screen.blit(background, (0, 0))
@@ -183,6 +233,14 @@ def main():
                     tw.run()
                 elif online_game_button.click(event):
                     select_popup.running = True
+                elif challenge_game_button.click(event):
+                    tw_challenge.__init__(
+                        screen,
+                        map_path=now_map_path,
+                        double_players=False,
+                        BFS_open=False,
+                    )
+                    tw_challenge.run()
                 elif select_popup.running and event.type == pygame.MOUSEBUTTONDOWN:
                     if select_popup.button1.click(event):
                         select_popup.running = False
@@ -195,7 +253,7 @@ def main():
                             server_thread,
                         )
                         s = socket.socket()
-                        s.connect(("192.168.1.153", 8888))
+                        s.connect((server_IP, server_port))
                         client = Client(s, screen)
                         client.send({"protocol": "cli_login", "role_id": 1})
                         print("等待服务器响应")
@@ -207,7 +265,7 @@ def main():
                     if select_popup.button2.click(event):
                         select_popup.running = False
                         s = socket.socket()
-                        s.connect(("192.168.1.153", 8888))
+                        s.connect((server_IP, server_port))
                         client = Client(s, screen)
                         client.send({"protocol": "cli_login", "role_id": 2})
                         print("等待服务器响应")
@@ -218,6 +276,52 @@ def main():
                         net_tank_world.run()
                     if select_popup.close_button.click(event):
                         select_popup.running = False
+                elif about_button.click(event):
+                    return_flag = True
+                    while return_flag:
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                pygame.quit()
+                                sys.exit()
+                            if event.type == pygame.MOUSEBUTTONDOWN:
+                                mouse_pos = pygame.mouse.get_pos()
+                                # 判断是否点击了返回按钮
+                                if setting_return_button_rect.collidepoint(mouse_pos):
+                                    return_flag = False
+                        screen.fill((200, 200, 200))
+                        # 写出制作组成员名字
+                        font = pygame.font.Font(None, 30)
+                        text1 = font.render("Developer", True, (0, 0, 0))
+                        text1_rect = text1.get_rect()
+                        text1_rect.centerx = screen.get_rect().centerx
+                        text1_rect.centery = 70
+                        text2 = font.render("Zilyu Ye", True, (0, 0, 0))
+                        text2_rect = text2.get_rect()
+                        text2_rect.centerx = screen.get_rect().centerx
+                        text2_rect.centery = 140
+                        text3 = font.render("Enhua Zhang", True, (0, 0, 0))
+                        text3_rect = text3.get_rect()
+                        text3_rect.centerx = screen.get_rect().centerx
+                        text3_rect.centery = 210
+                        text4 = font.render("Chengkai Wang", True, (0, 0, 0))
+                        text4_rect = text4.get_rect()
+                        text4_rect.centerx = screen.get_rect().centerx
+                        text4_rect.centery = 280
+                        text5 = font.render("Runze Fang", True, (0, 0, 0))
+                        text5_rect = text5.get_rect()
+                        text5_rect.centerx = screen.get_rect().centerx
+                        text5_rect.centery = 350
+                        # 绘制名字和返回按钮
+
+                        screen.blit(text1, text1_rect)
+                        screen.blit(text2, text2_rect)
+                        screen.blit(text3, text3_rect)
+                        screen.blit(text4, text4_rect)
+                        screen.blit(text5, text5_rect)
+                        screen.blit(return_button_image, setting_return_button_rect)
+
+                        pygame.display.flip()
+
                 elif setting_button.click(event):
                     return_flag = True
 
@@ -238,6 +342,9 @@ def main():
                                 mouse_pos = pygame.mouse.get_pos()
                                 # 判断是否点击了返回按钮
                                 if setting_return_button_rect.collidepoint(mouse_pos):
+                                    server_IP = ip_textbox.get_text()
+                                    if port_textbox.get_text().isdigit():
+                                        server_port = int(port_textbox.get_text())
                                     return_flag = False
                                 if enter_designer_button_rect.collidepoint(mouse_pos):
                                     designer_screen = pygame.display.set_mode(
@@ -253,6 +360,8 @@ def main():
                                 if enter_printer_button_rect.collidepoint(mouse_pos):
                                     bullet_printer.main()
                             map_dropdown.handle_event(event)
+                            ip_textbox.handle_event(event)
+                            port_textbox.handle_event(event)
 
                         mouse_x, mouse_y = pygame.mouse.get_pos()
                         # 检测鼠标点击事件
@@ -286,12 +395,27 @@ def main():
                         text2 = font.render("Map Selection", True, (0, 0, 0))
                         text2_rect = text2.get_rect()
                         text2_rect.centerx = screen.get_rect().centerx
-                        text2_rect.centery = 170
+                        text2_rect.centery = 140
+                        # 在第一个文本框左边写出服务器IP
+                        text3 = font.render("Server IP", True, (0, 0, 0))
+                        text3_rect = text3.get_rect()
+                        text3_rect.centerx = screen.get_rect().centerx - 130
+                        text3_rect.centery = 270
+                        # 在第二个文本框左边写出服务器端口
+                        text4 = font.render("Server Port", True, (0, 0, 0))
+                        text4_rect = text4.get_rect()
+                        text4_rect.centerx = screen.get_rect().centerx - 130
+                        text4_rect.centery = 320
+
                         music_volume_slider.draw()
                         map_dropdown.draw(screen)
+                        ip_textbox.draw()
+                        port_textbox.draw()
 
                         screen.blit(text1, text1_rect)
                         screen.blit(text2, text2_rect)
+                        screen.blit(text3, text3_rect)
+                        screen.blit(text4, text4_rect)
                         screen.blit(return_button_image, setting_return_button_rect)
                         screen.blit(
                             enter_design_button_image, enter_designer_button_rect

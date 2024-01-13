@@ -9,12 +9,12 @@ class AbstractUIComponent(ABC):
 
 
 class TextInputBox(AbstractUIComponent):
-    def __init__(self, screen, x, y, width, height, font_size=40):
+    def __init__(self, screen, x, y, width, height, text_font):
         self.rect = pygame.Rect(x, y, width, height)
         self.screen = screen
         self.color = (255, 255, 255)
         self.text = ""
-        self.font = pygame.font.Font(None, font_size)
+        self.font = text_font
         self.active = False
 
     def handle_event(self, event):
@@ -25,10 +25,7 @@ class TextInputBox(AbstractUIComponent):
                 self.active = False
         if event.type == pygame.KEYDOWN:
             if self.active:
-                if event.key == pygame.K_RETURN:
-                    print(self.text)
-                    self.text = ""
-                elif event.key == pygame.K_BACKSPACE:
+                if event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
                 else:
                     self.text += event.unicode
@@ -37,6 +34,9 @@ class TextInputBox(AbstractUIComponent):
         pygame.draw.rect(self.screen, self.color, self.rect, 2)
         text_surface = self.font.render(self.text, True, self.color)
         self.screen.blit(text_surface, (self.rect.x + 5, self.rect.y + 5))
+
+    def get_text(self):
+        return self.text
 
 
 class Slider(AbstractUIComponent):
@@ -81,19 +81,24 @@ class Button(AbstractUIComponent):
         font_size=20,
         text_color=(0, 0, 0),
         background_color=(255, 255, 255),
+        border_color=(0, 0, 0),
         background_image=None,
     ):
         self.rect = pygame.Rect(x, y, width, height)
-        self.font = pygame.font.Font("../fonts/FiraCode-Medium.ttf", font_size)
+        self.font = pygame.font.Font(None, font_size)
         self.text_color = text_color
         self.background_color = background_color
+        self.border_color = border_color
         self.text = text
         self.background_image = background_image
+        self.volume = 0.5
+        self.click_sound = pygame.mixer.Sound("../music/click.wav")
+        self.click_sound.set_volume(self.volume)
 
-    # do something when clicked
     def click(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
+                self.click_sound.play()
                 return True
 
     def draw(self, screen):
@@ -101,6 +106,7 @@ class Button(AbstractUIComponent):
             screen.blit(self.background_image, (self.rect.x, self.rect.y))
         else:
             pygame.draw.rect(screen, self.background_color, self.rect)
+            pygame.draw.rect(screen, self.border_color, self.rect, 2)  # Draw the border
         text_surface = self.font.render(self.text, True, self.text_color)
         text_rect = text_surface.get_rect(center=self.rect.center)
         screen.blit(text_surface, text_rect)
@@ -118,6 +124,7 @@ class Button(AbstractUIComponent):
                 min(c + 30, 255) for c in self.background_color
             )  # Lighten the color
             pygame.draw.rect(screen, button_color, self.rect)
+            pygame.draw.rect(screen, self.border_color, self.rect, 2)  # Draw the border
             screen.blit(text_surface, text_rect)
 
 
@@ -156,7 +163,6 @@ class CircleButton(Button):
             screen.blit(text_surface, text_rect)
 
 
-# 继承的圆角矩形按钮
 class RoundedRectangleButton(Button):
     def __init__(
         self,
@@ -169,8 +175,10 @@ class RoundedRectangleButton(Button):
         font_size=20,
         text_color=(0, 0, 0),
         background_color=(255, 255, 255),
+        border_color=(0, 0, 0),
     ):
         self.radius = radius
+        self.border_color = border_color
         super().__init__(
             x, y, width, height, text, font_size, text_color, background_color
         )
@@ -179,6 +187,9 @@ class RoundedRectangleButton(Button):
         pygame.draw.rect(
             screen, self.background_color, self.rect, border_radius=self.radius
         )
+        pygame.draw.rect(
+            screen, self.border_color, self.rect, width=2, border_radius=self.radius
+        )  # Draw the border
         text_surface = self.font.render(self.text, True, self.text_color)
         text_rect = text_surface.get_rect(center=self.rect.center)
         screen.blit(text_surface, text_rect)
@@ -190,6 +201,13 @@ class RoundedRectangleButton(Button):
                 min(c + 30, 255) for c in self.background_color
             )  # Lighten the color
             pygame.draw.rect(screen, button_color, self.rect, border_radius=self.radius)
+            pygame.draw.rect(
+                screen,
+                self.border_color,
+                self.rect,
+                width=-2,
+                border_radius=self.radius,
+            )  # Draw the border
             screen.blit(text_surface, text_rect)
 
 
@@ -380,9 +398,10 @@ class Popup(AbstractUIComponent):
             20,
             20,
             "X",
-            font_size=15,
+            font_size=20,
             text_color=(255, 255, 255),
             background_color=(255, 0, 0),
+            border_color=(200, 200, 200),
         )
 
         # 添加两个选择按钮
@@ -392,7 +411,7 @@ class Popup(AbstractUIComponent):
             80,
             40,
             self.button1_text,
-            font_size=15,
+            font_size=25,
             text_color=(0, 0, 0),
             background_color=(200, 200, 200),
         )
@@ -402,7 +421,7 @@ class Popup(AbstractUIComponent):
             80,
             40,
             self.button2_text,
-            font_size=15,
+            font_size=25,
             text_color=(0, 0, 0),
             background_color=(200, 200, 200),
         )

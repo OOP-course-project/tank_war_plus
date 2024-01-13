@@ -40,7 +40,13 @@ class Net_tank_world:
         )
 
         self.exit_popup = pygame_gui.windows.UIConfirmationDialog(
-            rect=pygame.Rect((0, 0), (100, 100)),
+            rect=pygame.Rect(
+                (
+                    self.screen.get_rect().centerx - 100,
+                    self.screen.get_rect().centery - 100,
+                ),
+                (200, 200),
+            ),
             manager=self.gui_manager,
             window_title="Exit Confirmation",
             action_long_desc="Are you sure you want to exit?",
