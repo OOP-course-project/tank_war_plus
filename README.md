@@ -3,7 +3,7 @@
 Tank World Plus is a large assignment we completed in our Advanced Programming course in SCUT. This is a tank battle game based on Pygame, with rich game elements and interactivity. Below is some information about this project and instructions for use.
 
 ## Project structure
-
+```
 tank_war_plus
 ├── README.md
 ├── fonts
@@ -29,7 +29,7 @@ tank_war_plus
     ├── net_tank_world.py
     ├── utilise.py
     └── ...
-
+```
 ## Game starts
 
 ```shell
